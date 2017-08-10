@@ -1,19 +1,42 @@
 const express = require('express'),
       router = express.Router(),
-      request = require('request');
+      https = require('https');
 
 router.post('/submissions', (req, res) => {
+    let body = JSON.stringify(req.body);
+
     let options = {
-        uri: 'https://stepik.org/api/submissions',
+        host: 'stepik.org',
+        path: '/api/submissions',
         method: req.method,
-        headers: req.headers,
-        body: JSON.stringify(req.body),
-        rejectUnauthorized: false
+        headers: {
+            'Authorization': req.headers.authorization,
+            'Content-Type': req.headers['content-type'],
+            'Content-Length': Buffer.byteLength(body)
+        }
     }
 
-    request(options, (error, response, body) => {
-        res.send(body).status(response.statusCode);
+
+    let rq = https.request(options, (rs) => {
+        console.log(`STATUS: ${rs.statusCode}`);
+        console.log(`HEADERS: ${JSON.stringify(rs.headers)}`);
+
+        var buff = '';
+        rs.on('data', (chunk) => {buff += chunk});
+
+        rs.on('end', () => {
+          // console.log(buff);
+            let data = JSON.parse(buff);
+
+            console.log(data);
+
+            res.send(buff).status(rs.statusCode);
+
+        });
     });
+
+    rq.write(body);
+    rq.end();
 });
 
 module.exports = router;
