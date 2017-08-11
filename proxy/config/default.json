@@ -1,22 +1,23 @@
 {
     "table_submissions" : {
-        "name" : "",
+        "name" : "submissions",
         "fields" : {
             "courseId": "course",
             "profileId": "user",
             "exp": "exp",
             "submissionId": "id",
             "status": "status",
-            "timestamp": "update_at"
+            "timestamp": "updated_at"
         }
     },
     "table_cache" : {
-        "name" : "",
+        "name" : "cache",
         "fields" : {
             "id": "id",
             "courseId": "course",
             "profileId": "user",
-            "exp": "exp"
+            "exp": "exp",
+            "timestamp": "updated_at"
         }
     }
 }

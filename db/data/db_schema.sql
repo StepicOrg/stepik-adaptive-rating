@@ -8,7 +8,7 @@ CREATE DATABASE IF NOT EXISTS `adaptive_rating` DEFAULT CHARACTER SET utf8 COLLA
 USE `adaptive_rating`;
 
 CREATE TABLE IF NOT EXISTS `cache` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `course` int(11) NOT NULL,
   `user` int(11) NOT NULL,
   `exp` int(11) NOT NULL,
