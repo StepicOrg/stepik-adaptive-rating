@@ -4,6 +4,16 @@ const express = require('express'),
       handlers = require('./handlers');
 
 router.post('/submissions', (req, res) => {
+    let course = req.body.course;
+    let user = req.body.user;
+    delete req.body.course;
+    delete req.body.user;
+
+    if (course == undefined || user == undefined || isNaN(course) || isNaN(user)) {
+        res.send({error: "Invalid course or user"}).status(401);
+        return;
+    } 
+
     let body = JSON.stringify(req.body);
 
     let options = {
@@ -17,14 +27,6 @@ router.post('/submissions', (req, res) => {
         }
     }
 
-    let course = req.body.course;
-    let user = req.body.user;
-
-    if (course == undefined || user == undefined || isNaN(course) || isNaN(user)) {
-        res.send({error: "Invalid course or user"}).status(401);
-        return;
-    } 
-
     let rq = https.request(options, (rs) => {
         var buff = '';
         rs.on('data', (chunk) => {buff += chunk});
@@ -35,7 +37,7 @@ router.post('/submissions', (req, res) => {
             handlers.postReturn(course, user, data).then(insertedSubmission => {
                 console.log(`[OK] Add submission to db: course = ${course}, user = ${user}, exp = ${insertedSubmission.exp}`);
             }).catch((err) => {
-                console.log(`[FAIL] Add submission to db: course = ${course}, user = ${user}, Stepik response = ${buff}`);
+                console.log(`[FAIL] Add submission to db: course = ${course}, user = ${user}, Stepik response = ${buff}, error = ${err}`);
             });
 
             res.send(buff).status(rs.statusCode);
