@@ -17,7 +17,7 @@ module.exports = {
     insertSubmission: function (submission) {
         return db.query(`
             INSERT INTO ${submissions.name}
-            VALUES (${submission.course_id}, ${submission.profile_id}, ${submission.exp}, ${submission.id}, '${submission.status}', NOW())`);
+            VALUES (${submission.course}, ${submission.user}, ${submission.exp}, ${submission.id}, '${submission.status}', NOW())`);
     },
     getNthSubmissionFromEnd: function (courseId, profileId, position, status) {
         if (status) status = `AND ${submissions.fields.status} == '${status}'`
@@ -44,30 +44,52 @@ module.exports = {
     },
 
 
-    getTopForCourse: function (courseId, count) {
+    /**
+    * @param courseId {number} - id of a course
+    * @param count {number} - max number of users you want to get
+    * @param {number} [delta] - if set period in days for which you want get top
+    * @return - array of top users like [{profile_id, exp, submissions.fields.timestamp }]
+    */
+    getTopForCourse: function (courseId, count, delta) {
+        if (delta) delta = `AND ${submissions.fields.timestamp} >= (SELECT DATETIME('now', '-${delta} day'))`
+
         return db.query(`
-            SELECT ${submissions.fields.profileId}, sum(${submissions.fields.exp}) as ${submissions.fields.exp}
+            SELECT ${submissions.fields.profileId}, sum(${submissions.fields.exp}) as ${submissions.fields.exp}, ${submissions.fields.timestamp}
             FROM ${submissions.name}
-            WHERE ${submissions.fields.status} = 'correct' AND ${submissions.fields.courseId} = ${courseId}
+            WHERE ${submissions.fields.status} = 'correct' AND ${submissions.fields.courseId} = ${courseId} ${delta}
             GROUP BY ${submissions.fields.profileId}
             ORDER BY ${submissions.fields.exp} DESC
             LIMIT ${count}`);
     },
 
-    saveTopToCache: function (courseId, top) {
-        return db.query(`DELETE FROM ${cache.name} WHERE ${cache.fields.courseId} = ${courseId}`)
+
+    /**
+    * @param courseId {number} - id of a course
+    * @param top {[{profile_id, exp, submissions.fields.timestamp }]} - array of top users
+    * @param {boolean} [saveTimestamp] - if true not erases submissions.fields.timestamp field
+    */
+    saveTopToCache: function (courseId, top, saveTimestamp) {
+        return db.query(`DELETE FROM ${cache.name} WHERE ${cache.fields.courseId} = ${courseId} AND ${cache.fields.timestamp} ${saveTimestamp ? '!=' : '='} 0`)
             .then(() => {
                 return Promise.all(top.map((item) => {
-                    return db.query(`INSERT INTO ${cache.name} VALUES (null, ${courseId}, ${item.profileId}, ${item.exp})`)
+                    return db.query(`INSERT INTO ${cache.name} VALUES (null, ${courseId}, ${item.profileId}, ${item.exp}, ${saveTimestamp ? item[submissions.fields.timestamp] : 0})`)
                 }));
             });
     },
 
-    getTopForCourseFromCache: function (courseId, count) {
+    /**
+    * @param courseId {number} - id of a course
+    * @param count {number} - max number of users you want to get
+    * @param {number} [delta] - if set period in days for which you want get top
+    * @return - array of top users like [{profile_id, exp, submissions.fields.timestamp }]
+    */
+    getTopForCourseFromCache: function (courseId, count, delta) {
+        delta = `AND ${cache.fields.timestamp}` + (delta ? `>= (SELECT DATETIME('now', '-${delta} day'))` : `= 0`);
+
         return db.query(`
             SELECT ${cache.fields.profileId}, ${cache.fields.exp}
             FROM ${cache.name}
-            WHERE ${cache.fields.courseId} = ${courseId}
+            WHERE ${cache.fields.courseId} = ${courseId} ${delta}
             ORDER BY ${cache.fields.exp}`);
     }
 };
