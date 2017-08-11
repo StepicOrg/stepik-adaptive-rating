@@ -18,6 +18,7 @@
   "homepage": "https://github.com/kvld/stepik-adaptive-rating#readme",
   "dependencies": {
     "body-parser": "^1.17.2",
+    "config": "^1.26.1",
     "express": "^4.15.4"
   }
 }

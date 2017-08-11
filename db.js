@@ -1,27 +1,12 @@
-const db = require('mysql-promise')();
+const
+    db      = require('mysql-promise')(),
+    config  = require('config');
 
-const   DB_HOST = '',
-        DB_USER = '',
-        DB_PASS = '',
-        DB_NAME = '';
+db.configure(config.get('db'));
 
-db.configure({
-    host: DB_HOST,
-    user: DB_USER,
-    password: DB_PASS,
-    database: DB_NAME
-});
+const TABLE_SUBMISSIONS = config.get('table_submissions.name');
 
-const TABLE_SUBMISSIONS = '';
-
-const Fields = {
-    courseId: 'course_id',
-    profileId: 'profile_id',
-    cost: 'cost',
-    submissionId: 'id',
-    status: 'status',
-    timestamp: 'update_at'
-};
+const Fields = config.get('table_submissions.fields');
 
 module.exports = {
     updateSubmissionStatus: function (submission) {
