@@ -2,7 +2,12 @@ const
     db      = require('mysql-promise')(),
     config  = require('config');
 
-db.configure(config.get('db'));
+db.configure({
+    host: process.env.MYSQL_HOST,
+    user: process.env.MYSQL_USER,
+    password: process.env.MYSQL_PASSWORD,
+    database: process.env.MYSQL_DATABASE
+});
 
 const submissions = config.get('table_submissions');
 const cache = config.get('table_cache');

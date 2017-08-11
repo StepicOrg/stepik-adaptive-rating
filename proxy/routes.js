@@ -20,7 +20,7 @@ router.post('/submissions', (req, res) => {
     let course = req.body.course;
     let user = req.body.user;
 
-    if (!isNaN(course) && !isNaN(user)) {
+    if (course == undefined || user == undefined || isNaN(course) || isNaN(user)) {
         res.send({error: "Invalid course or user"}).status(401);
         return;
     } 
