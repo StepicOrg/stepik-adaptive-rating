@@ -5,8 +5,6 @@ const
 db.configure(config.get('db'));
 
 const submissions = config.get('table_submissions');
-
-
 const cache = config.get('table_cache');
 
 module.exports = {
@@ -60,7 +58,7 @@ module.exports = {
         return db.query(`DELETE FROM ${cache.name} WHERE ${cache.fields.courseId} = ${courseId}`)
             .then(() => {
                 return Promise.all(top.map((item) => {
-                    return db.query(`INSERT INTO ${cache.name} VALUES (null, ${item.profileId}, ${item.exp}, ${courseId})`)
+                    return db.query(`INSERT INTO ${cache.name} VALUES (null, ${courseId}, ${item.profileId}, ${item.exp})`)
                 }));
             });
     },
