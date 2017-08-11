@@ -12,6 +12,8 @@ db.configure({
 const submissions = config.get('table_submissions');
 const cache = config.get('table_cache');
 
+const getFirstArg = (r) => { return r[0]; }
+
 module.exports = {
     updateSubmissionStatus: function (submission) {
         return db.query(`
@@ -25,12 +27,12 @@ module.exports = {
             VALUES (${submission.course}, ${submission.user}, ${submission.exp}, ${submission.id}, '${submission.status}', NOW())`);
     },
     getNthSubmissionFromEnd: function (courseId, profileId, position, status) {
-        if (status) status = `AND ${submissions.fields.status} == '${status}'`
+        status = status ? `AND ${submissions.fields.status} == '${status}'` : '';
         return db.query(`
             SELECT * FROM ${submissions.name}
             WHERE ${submissions.fields.profileId} = ${profileId} AND ${submissions.fields.courseId} = ${courseId} ${status}
             ORDER BY ${submissions.fields.timestamp} DESC
-            LIMIT ${position}, 1`);
+            LIMIT ${position}, 1`).then(getFirstArg);
     },
     getLastSubmission: function (courseId, profileId) {
         return this.getNthSubmissionFromEnd(courseId, profileId, 1);
@@ -56,7 +58,7 @@ module.exports = {
     * @return - array of top users like [{profile_id, exp, submissions.fields.timestamp }]
     */
     getTopForCourse: function (courseId, count, delta) {
-        if (delta) delta = `AND ${submissions.fields.timestamp} >= (SELECT DATETIME('now', '-${delta} day'))`
+        delta = delta ? `AND ${submissions.fields.timestamp} >= (SELECT DATETIME('now', '-${delta} day'))` : '';
 
         return db.query(`
             SELECT ${submissions.fields.profileId}, sum(${submissions.fields.exp}) as ${submissions.fields.exp}, ${submissions.fields.timestamp}
@@ -64,7 +66,7 @@ module.exports = {
             WHERE ${submissions.fields.status} = 'correct' AND ${submissions.fields.courseId} = ${courseId} ${delta}
             GROUP BY ${submissions.fields.profileId}
             ORDER BY ${submissions.fields.exp} DESC
-            LIMIT ${count}`);
+            LIMIT ${count}`).then(getFirstArg);
     },
 
 
@@ -77,7 +79,7 @@ module.exports = {
         return db.query(`DELETE FROM ${cache.name} WHERE ${cache.fields.courseId} = ${courseId} AND ${cache.fields.timestamp} ${saveTimestamp ? '!=' : '='} 0`)
             .then(() => {
                 return Promise.all(top.map((item) => {
-                    return db.query(`INSERT INTO ${cache.name} VALUES (null, ${courseId}, ${item.profileId}, ${item.exp}, ${saveTimestamp ? item[submissions.fields.timestamp] : 0})`)
+                    return db.query(`INSERT INTO ${cache.name} VALUES (null, ${courseId}, ${item[submissions.fields.profileId]}, ${item[submissions.fields.exp]}, ${saveTimestamp ? item[submissions.fields.timestamp] : 0})`)
                 }));
             });
     },
@@ -95,6 +97,6 @@ module.exports = {
             SELECT ${cache.fields.profileId}, ${cache.fields.exp}
             FROM ${cache.name}
             WHERE ${cache.fields.courseId} = ${courseId} ${delta}
-            ORDER BY ${cache.fields.exp}`);
+            ORDER BY ${cache.fields.exp}`).then(getFirstArg);
     }
 };
