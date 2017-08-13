@@ -33,14 +33,19 @@ router.post('/submissions', (req, res) => {
 
         rs.on('end', () => {
             let data = JSON.parse(buff);
+            let submission = data.submissions[0];
 
-            handlers.postReturn(course, user, data).then(insertedSubmission => {
-                console.log(`[OK] Add submission to db: course = ${course}, user = ${user}, exp = ${insertedSubmission.exp}`);
-            }).catch((err) => {
-                console.log(`[FAIL] Add submission to db: course = ${course}, user = ${user}, Stepik response = ${buff}, error = ${err}`);
-            });
+            if (submission) {
+                handlers.postReturn(course, user, submission).then(insertedSubmission => {
+                    console.log(`[OK] Add submission to db: course = ${course}, user = ${user}, exp = ${insertedSubmission.exp}`);
+                }).catch((err) => {
+                    console.log(`[FAIL] Add submission to db: course = ${course}, user = ${user}, Stepik response = ${buff}, error = ${err}`);
+                });
 
-            res.send(buff).status(rs.statusCode);
+                res.send(buff).status(rs.statusCode);
+            } else {
+                res.send({error: "Invalid backend response"}).status(401);
+            }
         });
     });
 
@@ -65,14 +70,19 @@ router.get('/submissions/:id', (req, res) => {
 
         rs.on('end', () => {
             let data = JSON.parse(buff);
+            let submission = data.submissions[0];
 
-            handlers.getReturn(data).then(_ => {
-                console.log(`[OK] Update submission in db: id = ${data.id}, status = ${data.status}`);
-            }).catch((err) => {
-                console.log(`[FAIL] Update submission in db: Stepik response = ${buff}`);
-            });
+            if (submission) {
+                handlers.getReturn(data).then(_ => {
+                    console.log(`[OK] Update submission in db: id = ${data.id}, status = ${data.status}`);
+                }).catch((err) => {
+                    console.log(`[FAIL] Update submission in db: Stepik response = ${buff}`);
+                });
 
-            res.send(buff).status(rs.statusCode);
+                res.send(buff).status(rs.statusCode);
+            } else {
+                res.send({error: "Invalid backend response"}).status(401);
+            }
         });
     });
 
