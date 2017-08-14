@@ -6,7 +6,7 @@ const express = require('express'),
 
 router.post('/submissions', (req, res) => {
     if (req.headers.authorization == undefined || req.headers['content-type'] == undefined) {
-        res.send({error: "Invalid headers"}).status(401);
+        res.status(401).send({error: "Invalid headers"});
         return;
     } 
 
@@ -16,7 +16,7 @@ router.post('/submissions', (req, res) => {
     delete req.body.user;
 
     if (course == undefined || user == undefined || isNaN(course) || isNaN(user)) {
-        res.send({error: "Invalid course or user"}).status(401);
+        res.status(401).send({error: "Invalid course or user"});
         return;
     } 
 
@@ -41,14 +41,14 @@ router.post('/submissions', (req, res) => {
             let data = JSON.parse(buff);
             if (data.submissions.length > 0) {
                 handlers.postReturn(course, user, data.submissions[0]).then(insertedSubmission => {
-                    console.log(`[OK] Add submission to db: course = ${course}, user = ${user}, exp = ${insertedSubmission.exp}`);
+                    console.log(`[OK] Add submission to db: course = ${course}, user = ${user}, id = ${insertedSubmission.id}, exp = ${insertedSubmission.exp}`);
                 }).catch((err) => {
                     console.log(`[FAIL] Add submission to db: course = ${course}, user = ${user}, Stepik response = ${buff}, error = ${err}`);
                 });
 
                 res.send(buff).status(rs.statusCode);
             } else {
-                res.send({error: "Invalid backend response"}).status(401);
+                res.status(401).send({error: "Invalid backend response"});
             }
         });
     });
@@ -59,7 +59,7 @@ router.post('/submissions', (req, res) => {
 
 router.get('/submissions/:id?', (req, res) => {
     if (req.headers.authorization == undefined) {
-        res.send({error: "Invalid headers"}).status(401);
+        res.status(401).send({error: "Invalid headers"});
         return;
     } 
 
@@ -92,7 +92,7 @@ router.get('/submissions/:id?', (req, res) => {
 
                 res.send(buff).status(rs.statusCode);
             } else {
-                res.send({error: "Invalid backend response"}).status(401);
+                res.status(401).send({error: "Invalid backend response"});
             }
         });
     });
@@ -104,7 +104,7 @@ router.get('/rating', (req, res) => {
     let course = req.query.course;
 
     if (course == undefined || isNaN(course)) {
-        res.send({error: "Invalid course id"}).status(401);
+        res.status(401).send({error: "Invalid course id"});
         return;
     } 
 
