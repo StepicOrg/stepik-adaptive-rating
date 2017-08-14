@@ -1,6 +1,7 @@
 const
     db      = require('mysql-promise')(),
-    config  = require('config');
+    config  = require('config'),
+    SqlString = require('sqlstring');
 
 db.configure({
     host: process.env.MYSQL_HOST,
@@ -18,21 +19,21 @@ module.exports = {
     updateSubmissionStatus: function (submission) {
         return db.query(`
             UPDATE ${submissions.name}
-            SET ${submissions.fields.status} = '${submission.status}'
-            WHERE ${submissions.fields.submissionId} = ${submission.id}`);
+            SET ${submissions.fields.status} = ?
+            WHERE ${submissions.fields.submissionId} = ?`, [submission.status, submission.id]);
     },
     insertSubmission: function (submission) {
         return db.query(`
             INSERT INTO ${submissions.name}
-            VALUES (${submission.course}, ${submission.user}, ${submission.exp}, ${submission.id}, '${submission.status}', NOW())`);
+            VALUES (?, ?, ?, ?, ?, NOW())`, [submission.course, submission.user, submission.exp, submission.id, submission.status]);
     },
     getNthSubmissionFromEnd: function (courseId, profileId, position, status) {
-        status = status ? `AND ${submissions.fields.status} == '${status}'` : '';
+        status = status ? `AND ${submissions.fields.status} == ${SqlString.escape(status)}` : '';
         return db.query(`
             SELECT * FROM ${submissions.name}
-            WHERE ${submissions.fields.profileId} = ${profileId} AND ${submissions.fields.courseId} = ${courseId} ${status}
+            WHERE ${submissions.fields.profileId} = ? AND ${submissions.fields.courseId} = ? ${status}
             ORDER BY ${submissions.fields.timestamp} DESC
-            LIMIT ${position}, 1`).then(getFirstArg);
+            LIMIT ?, 1`, [profileId, courseId, position]).then(getFirstArg);
     },
     getLastSubmission: function (courseId, profileId) {
         return this.getNthSubmissionFromEnd(courseId, profileId, 1);
@@ -58,15 +59,15 @@ module.exports = {
     * @return - array of top users like [{profile_id, exp, submissions.fields.timestamp }]
     */
     getTopForCourse: function (courseId, count, delta) {
-        delta = delta ? `AND ${submissions.fields.timestamp} >= DATE_SUB (CURDATE(), INTERVAL ${delta} DAY)` : '';
+        delta = delta ? `AND ${submissions.fields.timestamp} >= DATE_SUB (CURDATE(), INTERVAL ${SqlString.escape(delta)} DAY)` : '';
 
         return db.query(`
             SELECT ${submissions.fields.profileId}, sum(${submissions.fields.exp}) as ${submissions.fields.exp}
             FROM ${submissions.name}
-            WHERE ${submissions.fields.status} = 'correct' AND ${submissions.fields.courseId} = ${courseId} ${delta}
+            WHERE ${submissions.fields.status} = 'correct' AND ${submissions.fields.courseId} = ? ${delta}
             GROUP BY ${submissions.fields.profileId}
             ORDER BY ${submissions.fields.exp} DESC
-            LIMIT ${count}`).then(getFirstArg);
+            LIMIT ${count}`, [courseId]).then(getFirstArg);
     },
 
 
@@ -76,10 +77,14 @@ module.exports = {
     * @param {boolean} [saveTimestamp] - if true not erases submissions.fields.timestamp field
     */
     saveTopToCache: function (courseId, top, saveTimestamp) {
-        return db.query(`DELETE FROM ${cache.name} WHERE ${cache.fields.courseId} = ${courseId} AND ${cache.fields.timestamp} ${saveTimestamp ? '!=' : '='} 0`)
+        return db.query(`
+            DELETE FROM ${cache.name}
+            WHERE ${cache.fields.courseId} = ? AND ${cache.fields.timestamp} ${saveTimestamp ? '!=' : '='} 0`,
+            [courseId])
             .then(() => {
                 return Promise.all(top.map((item) => {
-                    return db.query(`INSERT INTO ${cache.name} VALUES (null, ${courseId}, ${item[submissions.fields.profileId]}, ${item[submissions.fields.exp]}, ${saveTimestamp ? item[submissions.fields.timestamp] : 0})`)
+                    return db.query(`INSERT INTO ${cache.name} VALUES (null, ?, ?, ?, ?)`,
+                     [courseId, item[submissions.fields.profileId], item[submissions.fields.exp], (saveTimestamp ? item[submissions.fields.timestamp] : 0)])
                 }));
             });
     },
@@ -91,12 +96,12 @@ module.exports = {
     * @return - array of top users like [{profile_id, exp, submissions.fields.timestamp }]
     */
     getTopForCourseFromCache: function (courseId, count, delta) {
-        delta = `AND ${cache.fields.timestamp}` + (delta ? `>= DATE_SUB (CURDATE(), INTERVAL ${delta} DAY)` : `= 0`);
+        delta = `AND ${cache.fields.timestamp} ` + (delta ? `>= DATE_SUB (CURDATE(), INTERVAL ${SqlString.escape(delta)} DAY)` : `= 0`);
 
         return db.query(`
             SELECT ${cache.fields.profileId}, ${cache.fields.exp}
             FROM ${cache.name}
-            WHERE ${cache.fields.courseId} = ${courseId} ${delta}
-            ORDER BY ${cache.fields.exp}`).then(getFirstArg);
+            WHERE ${cache.fields.courseId} = ? ${delta}
+            ORDER BY ${cache.fields.exp}`, [courseId]).then(getFirstArg);
     }
 };
