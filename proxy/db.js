@@ -28,7 +28,7 @@ module.exports = {
             VALUES (?, ?, ?, ?, ?, NOW())`, [submission.course, submission.user, submission.exp, submission.id, submission.status]);
     },
     getNthSubmissionFromEnd: function (courseId, profileId, position, status) {
-        status = status ? `AND ${submissions.fields.status} == ${SqlString.escape(status)}` : '';
+        status = status ? `AND ${submissions.fields.status} = ${SqlString.escape(status)}` : `AND (${submissions.fields.status} = 'correct' OR ${submissions.fields.status} = 'wrong')`;
         return db.query(`
             SELECT * FROM ${submissions.name}
             WHERE ${submissions.fields.profileId} = ? AND ${submissions.fields.courseId} = ? ${status}
