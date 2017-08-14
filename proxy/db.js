@@ -36,10 +36,10 @@ module.exports = {
             LIMIT ?, 1`, [profileId, courseId, position]).then(getFirstArg);
     },
     getLastSubmission: function (courseId, profileId) {
-        return this.getNthSubmissionFromEnd(courseId, profileId, 1);
+        return this.getNthSubmissionFromEnd(courseId, profileId, 0);
     },
     getLastCorrectSubmission: function (courseId, profileId) {
-        return this.getNthSubmissionFromEnd(courseId, profileId, 1, 'correct');
+        return this.getNthSubmissionFromEnd(courseId, profileId, 0, 'correct');
     },
     calculateStreak: function (courseId, profileId, isStreakRestored) {
         return (isStreakRestored ? this.getLastCorrectSubmission(courseId, profileId) : this.getLastSubmission(courseId, profileId)).spread((submission) => {
