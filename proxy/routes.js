@@ -5,6 +5,11 @@ const express = require('express'),
       handlers = require('./handlers');
 
 router.post('/submissions', (req, res) => {
+    if (req.headers.authorization == undefined || req.headers['content-type'] == undefined) {
+        res.send({error: "Invalid headers"}).status(401);
+        return;
+    } 
+
     let course = req.body.course;
     let user = req.body.user;
     delete req.body.course;
@@ -53,7 +58,11 @@ router.post('/submissions', (req, res) => {
 });
 
 router.get('/submissions/:id?', (req, res) => {
-    console.log('/api/submissions' + (req.params.id ? '/' + req.params.id : '') + querystring.stringify(req.query));
+    if (req.headers.authorization == undefined || req.headers['content-type'] == undefined) {
+        res.send({error: "Invalid headers"}).status(401);
+        return;
+    } 
+
     let options = {
         host: 'stepik.org',
         path: '/api/submissions' + (req.params.id ? '/' + req.params.id : '') + '?' + querystring.stringify(req.query),
@@ -106,7 +115,5 @@ router.get('/rating', (req, res) => {
         res.status(500).send({error: ""});
     });
 });
-
-
 
 module.exports = router;
