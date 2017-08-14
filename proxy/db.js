@@ -41,8 +41,8 @@ module.exports = {
     getLastCorrectSubmission: function (courseId, profileId) {
         return this.getNthSubmissionFromEnd(courseId, profileId, 1, 'correct');
     },
-    calculateStreak: function (courseId, profileId) {
-        return this.getLastSubmission(courseId, profileId).spread((submission) => {
+    calculateStreak: function (courseId, profileId, isStreakRestored) {
+        return (isStreakRestored ? this.getLastCorrectSubmission(courseId, profileId) : this.getLastSubmission(courseId, profileId)).spread((submission) => {
             if (submission && submission[submissions.fields.status] == 'correct') {
                 return submission[submissions.fields.exp] + 1;
             } else {

@@ -3,12 +3,12 @@ const
       handlers = require('./handlers');
 
 module.exports = {
-	postReturn: function(course, user, submission) {
+	postReturn: function(course, user, submission, isStreakRestored) {
 		return new Promise((resolve, reject) => {
 			submission.course = course;
 			submission.user = user;
 
-			db.calculateStreak(course, user)
+			db.calculateStreak(course, user, isStreakRestored)
 			.then((streak) => {
 				submission.exp = streak;
 

@@ -12,8 +12,10 @@ router.post('/submissions', (req, res) => {
 
     let course = req.body.course;
     let user = req.body.user;
+    let isStreakRestored = req.body.streak_restored;
     delete req.body.course;
     delete req.body.user;
+    delete req.body.streak_restored;
 
     if (course == undefined || user == undefined || isNaN(course) || isNaN(user)) {
         res.status(401).send({error: "Invalid course or user"});
@@ -40,7 +42,7 @@ router.post('/submissions', (req, res) => {
         rs.on('end', () => {
             let data = JSON.parse(buff);
             if (data.submissions.length > 0) {
-                handlers.postReturn(course, user, data.submissions[0]).then(insertedSubmission => {
+                handlers.postReturn(course, user, data.submissions[0], isStreakRestored).then(insertedSubmission => {
                     console.log(`[OK] Add submission to db: course = ${course}, user = ${user}, id = ${insertedSubmission.id}, exp = ${insertedSubmission.exp}`);
                 }).catch((err) => {
                     console.log(`[FAIL] Add submission to db: course = ${course}, user = ${user}, Stepik response = ${buff}, error = ${err}`);
