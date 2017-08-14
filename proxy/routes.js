@@ -48,7 +48,7 @@ router.post('/submissions', (req, res) => {
                     console.log(`[FAIL] Add submission to db: course = ${course}, user = ${user}, Stepik response = ${buff}, error = ${err}`);
                 });
 
-                res.send(buff).status(rs.statusCode);
+                res.status(rs.statusCode).send(buff);
             } else {
                 res.status(401).send({error: "Invalid backend response"});
             }
@@ -92,7 +92,7 @@ router.get('/submissions/:id?', (req, res) => {
                     console.log(`[FAIL] Update submission in db: Stepik response = ${buff}`);
                 });
 
-                res.send(buff).status(rs.statusCode);
+                res.status(rs.statusCode).send(buff);
             } else {
                 res.status(401).send({error: "Invalid backend response"});
             }
