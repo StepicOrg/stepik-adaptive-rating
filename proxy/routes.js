@@ -84,7 +84,23 @@ router.get('/submissions/:id', (req, res) => {
     });
 
     rq.end();
-
 });
+
+router.get('/rating', (req, res) => {
+    let course = req.query.course;
+
+    if (course == undefined || isNaN(course)) {
+        res.send({error: "Invalid course id"}).status(401);
+        return;
+    } 
+
+    let count = req.query.course ? req.query.course : 10;
+
+    handlers.getRating(course, count, undefined).then(result => {
+        res.send(result);
+    });
+});
+
+
 
 module.exports = router;

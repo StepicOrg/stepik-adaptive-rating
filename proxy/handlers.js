@@ -20,5 +20,9 @@ module.exports = {
 	},
 	getReturn: function(submission) {
 		return db.updateSubmissionStatus(submission);
+	},
+	getRating: function(course, top, delta) {
+		// TODO: add cache
+		return db.getTopForCourse(course, top, delta);
 	}
 };
