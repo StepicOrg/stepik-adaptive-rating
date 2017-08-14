@@ -32,7 +32,7 @@ module.exports = {
         return db.query(`
             SELECT * FROM ${submissions.name}
             WHERE ${submissions.fields.profileId} = ? AND ${submissions.fields.courseId} = ? ${status}
-            ORDER BY ${submissions.fields.timestamp} DESC
+            ORDER BY ${submissions.fields.submissionId} DESC
             LIMIT ?, 1`, [profileId, courseId, position]).then(getFirstArg);
     },
     getLastSubmission: function (courseId, profileId) {
