@@ -58,7 +58,7 @@ module.exports = {
     * @return - array of top users like [{profile_id, exp, submissions.fields.timestamp }]
     */
     getTopForCourse: function (courseId, count, delta) {
-        delta = delta ? `AND ${submissions.fields.timestamp} >= (SELECT DATETIME('now', '-${delta} day'))` : '';
+        delta = delta ? `AND ${submissions.fields.timestamp} >= DATE_SUB (CURDATE(), INTERVAL ${delta} DAY)` : '';
 
         return db.query(`
             SELECT ${submissions.fields.profileId}, sum(${submissions.fields.exp}) as ${submissions.fields.exp}
@@ -91,7 +91,7 @@ module.exports = {
     * @return - array of top users like [{profile_id, exp, submissions.fields.timestamp }]
     */
     getTopForCourseFromCache: function (courseId, count, delta) {
-        delta = `AND ${cache.fields.timestamp}` + (delta ? `>= (SELECT DATETIME('now', '-${delta} day'))` : `= 0`);
+        delta = `AND ${cache.fields.timestamp}` + (delta ? `>= DATE_SUB (CURDATE(), INTERVAL ${delta} DAY)` : `= 0`);
 
         return db.query(`
             SELECT ${cache.fields.profileId}, ${cache.fields.exp}
