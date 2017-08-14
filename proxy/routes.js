@@ -1,6 +1,7 @@
 const express = require('express'),
       router = express.Router(),
       https = require('https'),
+      querystring = require('querystring'),
       handlers = require('./handlers');
 
 router.post('/submissions', (req, res) => {
@@ -51,10 +52,11 @@ router.post('/submissions', (req, res) => {
     rq.end();
 });
 
-router.get('/submissions', (req, res) => {
+router.get('/submissions/:id?', (req, res) => {
+    console.log('/api/submissions' + (req.params.id ? '/' + req.params.id : '') + querystring.stringify(req.query));
     let options = {
         host: 'stepik.org',
-        path: '/api/submissions',
+        path: '/api/submissions' + (req.params.id ? '/' + req.params.id : '') + '?' + querystring.stringify(req.query),
         method: req.method,
         headers: {
             'Authorization': req.headers.authorization,
@@ -95,8 +97,9 @@ router.get('/rating', (req, res) => {
     } 
 
     let count = req.query.count ? req.query.count : 10;
+    let delta = req.query.days ? req.query.days: undefined;
 
-    handlers.getRating(course, count, undefined).then(result => {
+    handlers.getRating(course, count, delta).then(result => {
         res.send(result);
     }).catch((err) => {
         console.log(`[FAIL] Get rating from db: error = ${err}`);

@@ -61,7 +61,7 @@ module.exports = {
         delta = delta ? `AND ${submissions.fields.timestamp} >= (SELECT DATETIME('now', '-${delta} day'))` : '';
 
         return db.query(`
-            SELECT ${submissions.fields.profileId}, sum(${submissions.fields.exp}) as ${submissions.fields.exp}, ${submissions.fields.timestamp}
+            SELECT ${submissions.fields.profileId}, sum(${submissions.fields.exp}) as ${submissions.fields.exp}
             FROM ${submissions.name}
             WHERE ${submissions.fields.status} = 'correct' AND ${submissions.fields.courseId} = ${courseId} ${delta}
             GROUP BY ${submissions.fields.profileId}
