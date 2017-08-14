@@ -51,7 +51,7 @@ router.post('/submissions', (req, res) => {
     rq.end();
 });
 
-router.get('/submissions/:id', (req, res) => {
+router.get('/submissions', (req, res) => {
     let options = {
         host: 'stepik.org',
         path: '/api/submissions',
@@ -94,10 +94,13 @@ router.get('/rating', (req, res) => {
         return;
     } 
 
-    let count = req.query.course ? req.query.course : 10;
+    let count = req.query.count ? req.query.count : 10;
 
     handlers.getRating(course, count, undefined).then(result => {
         res.send(result);
+    }).catch((err) => {
+        console.log(`[FAIL] Get rating from db: error = ${err}`);
+        res.status(500).send({error: ""});
     });
 });
 
