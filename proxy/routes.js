@@ -58,7 +58,7 @@ router.post('/submissions', (req, res) => {
 });
 
 router.get('/submissions/:id?', (req, res) => {
-    if (req.headers.authorization == undefined || req.headers['content-type'] == undefined) {
+    if (req.headers.authorization == undefined) {
         res.send({error: "Invalid headers"}).status(401);
         return;
     } 
@@ -68,9 +68,12 @@ router.get('/submissions/:id?', (req, res) => {
         path: '/api/submissions' + (req.params.id ? '/' + req.params.id : '') + '?' + querystring.stringify(req.query),
         method: req.method,
         headers: {
-            'Authorization': req.headers.authorization,
-            'Content-Type': req.headers['content-type']
+            'Authorization': req.headers.authorization
         }
+    }
+
+    if (req.headers['content-type']) {
+        options.headers['Content-Type'] = req.headers['content-type'];
     }
 
     let rq = https.request(options, (rs) => {
@@ -105,8 +108,8 @@ router.get('/rating', (req, res) => {
         return;
     } 
 
-    let count = req.query.count ? req.query.count : 10;
-    let delta = req.query.days ? req.query.days: undefined;
+    let count = req.query.count || 10;
+    let delta = req.query.days  || undefined;
 
     handlers.getRating(course, count, delta).then(result => {
         res.send(result);
