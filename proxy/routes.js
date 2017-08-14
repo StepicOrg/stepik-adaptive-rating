@@ -69,8 +69,9 @@ router.get('/submissions/:id', (req, res) => {
         rs.on('end', () => {
             let data = JSON.parse(buff);
             if (data.submissions.length > 0) {
-                handlers.getReturn(data.submissions[0]).then(_ => {
-                    console.log(`[OK] Update submission in db: id = ${data.id}, status = ${data.status}`);
+                let submission = data.submissions[0];
+                handlers.getReturn(submission).then(_ => {
+                    console.log(`[OK] Update submission in db: id = ${submission.id}, status = ${submission.status}`);
                 }).catch((err) => {
                     console.log(`[FAIL] Update submission in db: Stepik response = ${buff}`);
                 });
