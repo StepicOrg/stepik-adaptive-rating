@@ -33,10 +33,8 @@ router.post('/submissions', (req, res) => {
 
         rs.on('end', () => {
             let data = JSON.parse(buff);
-            let submission = data.submissions[0];
-
-            if (submission) {
-                handlers.postReturn(course, user, submission).then(insertedSubmission => {
+            if (data.submissions.length > 0) {
+                handlers.postReturn(course, user, data.submissions[0]).then(insertedSubmission => {
                     console.log(`[OK] Add submission to db: course = ${course}, user = ${user}, exp = ${insertedSubmission.exp}`);
                 }).catch((err) => {
                     console.log(`[FAIL] Add submission to db: course = ${course}, user = ${user}, Stepik response = ${buff}, error = ${err}`);
@@ -70,10 +68,8 @@ router.get('/submissions/:id', (req, res) => {
 
         rs.on('end', () => {
             let data = JSON.parse(buff);
-            let submission = data.submissions[0];
-
-            if (submission) {
-                handlers.getReturn(data).then(_ => {
+            if (data.submissions.length > 0) {
+                handlers.getReturn(data.submissions[0]).then(_ => {
                     console.log(`[OK] Update submission in db: id = ${data.id}, status = ${data.status}`);
                 }).catch((err) => {
                     console.log(`[FAIL] Update submission in db: Stepik response = ${buff}`);
