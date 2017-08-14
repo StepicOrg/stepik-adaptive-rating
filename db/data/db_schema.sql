@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `cache` (
   `course` int(11) NOT NULL,
   `user` int(11) NOT NULL,
   `exp` int(11) NOT NULL,
-  `updated_at` date NOT NULL
+  `delta` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `submissions` (

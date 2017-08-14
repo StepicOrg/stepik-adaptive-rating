@@ -17,7 +17,7 @@
             "courseId": "course",
             "profileId": "user",
             "exp": "exp",
-            "timestamp": "updated_at"
+            "delta": "delta"
         }
     }
 }

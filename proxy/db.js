@@ -67,26 +67,7 @@ module.exports = {
             WHERE ${submissions.fields.status} = 'correct' AND ${submissions.fields.courseId} = ? ${delta}
             GROUP BY ${submissions.fields.profileId}
             ORDER BY ${submissions.fields.exp} DESC
-            LIMIT ${count}`, [courseId]).then(getFirstArg);
-    },
-
-
-    /**
-    * @param courseId {number} - id of a course
-    * @param top {[{profile_id, exp, submissions.fields.timestamp }]} - array of top users
-    * @param {boolean} [saveTimestamp] - if true not erases submissions.fields.timestamp field
-    */
-    saveTopToCache: function (courseId, top, saveTimestamp) {
-        return db.query(`
-            DELETE FROM ${cache.name}
-            WHERE ${cache.fields.courseId} = ? AND ${cache.fields.timestamp} ${saveTimestamp ? '!=' : '='} 0`,
-            [courseId])
-            .then(() => {
-                return Promise.all(top.map((item) => {
-                    return db.query(`INSERT INTO ${cache.name} VALUES (null, ?, ?, ?, ?)`,
-                     [courseId, item[submissions.fields.profileId], item[submissions.fields.exp], (saveTimestamp ? item[submissions.fields.timestamp] : 0)])
-                }));
-            });
+            LIMIT ?`, [courseId, count]).then(getFirstArg);
     },
 
     /**
@@ -96,12 +77,57 @@ module.exports = {
     * @return - array of top users like [{profile_id, exp, submissions.fields.timestamp }]
     */
     getTopForCourseFromCache: function (courseId, count, delta) {
-        delta = `AND ${cache.fields.timestamp} ` + (delta ? `>= DATE_SUB (CURDATE(), INTERVAL ${SqlString.escape(delta)} DAY)` : `= 0`);
+        delta = delta || 0;
 
         return db.query(`
             SELECT ${cache.fields.profileId}, ${cache.fields.exp}
             FROM ${cache.name}
-            WHERE ${cache.fields.courseId} = ? ${delta}
-            ORDER BY ${cache.fields.exp}`, [courseId]).then(getFirstArg);
+            WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?
+            ORDER BY ${cache.fields.exp} DESC
+            LIMIT ?`, [courseId, delta, count]).then(getFirstArg);
+    },
+
+
+    /**
+    * Builds rating table for given course in given period of time in days. WARNING: maybe very slow (60+ seconds on 40k items).
+    * @param courseId {number} - id of a course
+    * @param {number} [delta] - if set period in days for which you want get top
+    */
+    buildRatingTable: function (courseId, delta) {
+        delta = delta || 0;
+
+        return db.query(`
+            DELETE FROM ${cache.name}
+            WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?`, [courseId, delta]).then(_ => {
+
+                deltaSelect = delta != 0 ? `AND ${submissions.fields.timestamp} >= DATE_SUB (CURDATE(), INTERVAL ${SqlString.escape(delta)} DAY)` : '';
+
+                return db.query(`
+                    INSERT INTO ${cache.name} (${cache.fields.id}, ${cache.fields.courseId}, ${submissions.fields.profileId}, ${submissions.fields.exp}, ${cache.fields.delta})
+                    SELECT null, ?, ${submissions.fields.profileId}, sum(${submissions.fields.exp}) as ${submissions.fields.exp}, ?
+                    FROM ${submissions.name}
+                    WHERE ${submissions.fields.status} = 'correct' AND ${submissions.fields.courseId} = ? ${deltaSelect}
+                    GROUP BY ${submissions.fields.profileId}
+                    ORDER BY ${submissions.fields.exp} DESC`, [courseId, delta, courseId]);
+            });
+    },
+
+    /**
+    * @param courseId {number} - id of a course
+    * @param profileId {number} - user id
+    * @param {number} [delta] - if set period in days for which you want get top
+    *
+    * @return Promise to object {exp, rank} where exp - user's exp and rank is his position in top
+    */
+    getUserExpAndRank: function (courseId, profileId, delta) {
+        delta = delta || 0;
+
+        return db.query(`
+            SELECT ${cache.fields.exp}, FIND_IN_SET(${cache.fields.exp}, (
+                SELECT GROUP_CONCAT (${cache.fields.exp} ORDER BY ${cache.fields.exp} DESC) FROM ${cache.name}
+                WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?
+            )) AS rank
+            FROM ${cache.name}
+            WHERE ${cache.fields.courseId} = ? AND ${cache.fields.profileId} = ? AND ${cache.fields.delta} = ?`, [courseId, delta, courseId, profileId, delta]).then(getFirstArg);
     }
 };
