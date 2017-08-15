@@ -60,6 +60,7 @@ module.exports = {
 				.then(res => {
 					if (res != undefined && res.rank != undefined && res.exp != undefined) {
 						res.user = user;
+						res.rank += 1;
 						rating.push(res);
 					}
 					resolve(rating);
