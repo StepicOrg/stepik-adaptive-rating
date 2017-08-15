@@ -21,8 +21,37 @@ module.exports = {
 	getReturn: function(submission) {
 		return db.updateSubmissionStatus(submission);
 	},
-	getRating: function(course, top, delta) {
-		// TODO: add cache
-		return db.getTopForCourse(course, top, delta);
+	getRating: function(course, top, delta, user) {
+		if (!user) {
+			return db.getTopForCourse(course, top, delta);
+		} else {
+			let rating = [];
+			return new Promise((resolve, reject) => {
+				db.getTopForCourse(course, top, delta)
+				.then(result => {
+					rating = result;
+
+					let contains = false;
+					for (record in rating) {
+						if (record.user == user) {
+							contains = true;
+							break;
+						}
+					}
+					
+					if (contains) {
+						resolve(rating);
+						return;
+					} else {
+						return db.getUserExpAndRank(course, user, delta);
+					}
+				})
+				.then(res => {
+					rating.push(res);
+					resolve(rating);
+				})
+				.catch(err => reject(err));
+			});
+		}
 	}
 };

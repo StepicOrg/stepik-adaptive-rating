@@ -112,8 +112,9 @@ router.get('/rating', (req, res) => {
 
     let count = Number.parseInt(req.query.count) || 10;
     let delta = Number.parseInt(req.query.days)  || undefined;
+    let user = req.query.user || undefined;
 
-    handlers.getRating(course, count, delta).then(result => {
+    handlers.getRating(course, count, delta, user).then(result => {
         res.send(result);
     }).catch((err) => {
         console.log(`[FAIL] Get rating from db: error = ${err}`);
