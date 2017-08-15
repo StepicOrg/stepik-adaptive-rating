@@ -128,6 +128,6 @@ module.exports = {
                 WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?
             )) AS rank
             FROM ${cache.name}
-            WHERE ${cache.fields.courseId} = ? AND ${cache.fields.profileId} = ? AND ${cache.fields.delta} = ?`, [courseId, delta, courseId, profileId, delta]).then(getFirstArg);
+            WHERE ${cache.fields.courseId} = ? AND ${cache.fields.profileId} = ? AND ${cache.fields.delta} = ?`, [courseId, delta, courseId, profileId, delta]).then(getFirstArg).then(getFirstArg);
     }
 };
