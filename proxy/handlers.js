@@ -32,13 +32,13 @@ module.exports = {
 					rating = result;
 
 					let contains = false;
-					for (record in rating) {
-						if (record.user == user) {
+					for (var i = 0; i < rating.length; i++) {
+						if (rating[i].user == user) {
 							contains = true;
 							break;
 						}
 					}
-					
+
 					if (contains) {
 						resolve(rating);
 						return;
@@ -47,7 +47,9 @@ module.exports = {
 					}
 				})
 				.then(res => {
-					rating.push(res);
+					if (res && res.user) {
+						rating.push(res);
+					}
 					resolve(rating);
 				})
 				.catch(err => reject(err));
