@@ -110,8 +110,8 @@ router.get('/rating', (req, res) => {
         return;
     } 
 
-    let count = req.query.count || 10;
-    let delta = req.query.days  || undefined;
+    let count = Number.parseInt(req.query.count) || 10;
+    let delta = Number.parseInt(req.query.days)  || undefined;
 
     handlers.getRating(course, count, delta).then(result => {
         res.send(result);
