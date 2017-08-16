@@ -16,16 +16,25 @@ const cache = config.get('table_cache');
 const getFirstArg = (r) => { return r[0]; }
 
 module.exports = {
+    Errors: {
+        AlreadyMigrateError: 'User has already migrated'
+    },
+
     updateSubmissionStatus: function (submission) {
         return db.query(`
             UPDATE ${submissions.name}
             SET ${submissions.fields.status} = ?
             WHERE ${submissions.fields.submissionId} = ?`, [submission.status, submission.id]);
     },
-    insertSubmission: function (submission) {
+    insertSubmission: function (submission, forceId, timestamp) {
+
+        forceId = forceId ? `MIN(${submissions.fields.submissionId} - 1) AS ${submissions.fields.submissionId}` : SqlString.escape(submission.id);
+        timestamp = timestamp ? SqlString.format('FROM_UNIXTIME(?)', [timestamp]) : 'NOW()';
+
         return db.query(`
             INSERT INTO ${submissions.name}
-            VALUES (?, ?, ?, ?, ?, NOW())`, [submission.course, submission.user, submission.exp, submission.id, submission.status]);
+            (${submissions.fields.courseId}, ${submissions.fields.profileId}, ${submissions.fields.exp}, ${submissions.fields.submissionId}, ${submissions.fields.status}, ${submissions.fields.timestamp})
+            SELECT ?, ?, ?, ${forceId}, ?, ${timestamp} FROM ${submissions.name}`, [submission.course, submission.user, submission.exp, submission.status]);
     },
     getNthSubmissionFromEnd: function (courseId, profileId, position, status) {
         status = status ? `AND ${submissions.fields.status} = ${SqlString.escape(status)}` : `AND (${submissions.fields.status} = 'correct' OR ${submissions.fields.status} = 'wrong')`;
@@ -72,11 +81,12 @@ module.exports = {
 
     /**
     * @param courseId {number} - id of a course
+    * @param start {number} - starting users rank, if 0 you get top users
     * @param count {number} - max number of users you want to get
     * @param {number} [delta] - if set period in days for which you want get top
     * @return - array of top users like [{profile_id, exp, submissions.fields.timestamp }]
     */
-    getTopForCourseFromCache: function (courseId, count, delta) {
+    getTopForCourseFromCache: function (courseId, start, count, delta) {
         delta = delta || 0;
 
         return db.query(`
@@ -84,7 +94,7 @@ module.exports = {
             FROM ${cache.name}
             WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?
             ORDER BY ${cache.fields.exp} DESC
-            LIMIT ?`, [courseId, delta, count]).then(getFirstArg);
+            LIMIT ?, ?`, [courseId, delta, start, count]).then(getFirstArg);
     },
 
 
@@ -129,5 +139,22 @@ module.exports = {
             )) AS rank
             FROM ${cache.name}
             WHERE ${cache.fields.courseId} = ? AND ${cache.fields.profileId} = ? AND ${cache.fields.delta} = ?`, [courseId, delta, courseId, profileId, delta]).then(getFirstArg).then(getFirstArg);
+    },
+
+    migrate: function (courseId, profileId, exp, streak) {
+        return db.query(`
+            SELECT ${submissions.fields.profileId}
+            FROM ${submissions.name}
+            WHERE ${submissions.fields.courseId} = ? AND ${submissions.fields.profileId} = ?`, [courseId, profileId]).then(getFirstArg)
+
+            .then(r => {
+                if (r.length === 0) {
+                    return this.insertSubmission({course: courseId, user: profileId, exp: streak, id: -1, status: 'correct'}, true, 0).then(_ => {
+                        return this.insertSubmission({course: courseId, user: profileId, exp: exp - streak, id: -1, status: 'correct'}, true, 0);
+                    });
+                } else {
+                    return this.Errors.AlreadyMigrateError;
+                }
+            })
     }
 };
