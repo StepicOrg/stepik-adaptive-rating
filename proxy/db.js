@@ -145,9 +145,9 @@ module.exports = {
         delta = delta || 0;
 
         return db.query(`
-            SELECT COUNT(*)
+            SELECT COUNT(*) AS count
             FROM ${cache.name}
-            WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?`, [courseId, delta]).then(getFirstArg);
+            WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?`, [courseId, delta]).then(getFirstArg).then(getFirstArg);
     },
 
     migrate: function (courseId, profileId, exp, streak) {

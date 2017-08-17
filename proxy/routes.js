@@ -139,35 +139,6 @@ router.get('/rating', (req, res) => {
     });
 });
 
-router.get('/count', (req, res) => {
-    let course = req.query.course;
-
-    if (course == undefined || isNaN(course)) {
-        res.status(401).send({error: "Invalid course id"});
-        return;
-    } 
-
-    course = Number.parseInt(course);
-    if (!config.get('supported_courses').includes(course)) {
-        res.status(401).send({error: "Unsupported course"});
-        return;
-    }
-
-    let delta = Number.parseInt(req.query.days) || 0;
-    if (!config.get('supported_days').includes(delta)) {
-        res.status(401).send({error: "Unsupported days count"});
-        return;
-    }
-
-    handlers.getCount(course, delta).then(result => {
-        res.send(result);
-    }).catch((err) => {
-        console.log(`[FAIL] Get rating count from db: error = ${err}`);
-        res.status(500).send({error: ""});
-    });
-});
-
-
 router.post('/migrate', (req, res) => {
     let course = req.body.course;
 

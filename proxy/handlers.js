@@ -28,22 +28,27 @@ module.exports = {
 			}).catch(err => reject(err));
 		});
 	},
-	getCount: function(course, delta) {
-		return db.countUsersInTop(course, delta);
-	},
 	getRating: function(course, top, delta, user) {
+		let ratingCnt = 0;
 		if (!user) {
 			return new Promise((resolve, reject) => {
-				db.getTopForCourseFromCache(course, 0, top, delta).then(result => {
+				db.countUsersInTop(course, delta).then(r => {
+					ratingCnt = r.count;
+					return db.getTopForCourseFromCache(course, 0, top, delta);
+				})
+				.then(result => {
 					result.forEach((e, i, a) => { e.rank = i + 1; });
-					resolve(result);
+					resolve({count: ratingCnt, users: result});
 				}).catch(err => reject(err));
 			});
 		} else {
 			let rating = [];
 			let offset = -1;
 			return new Promise((resolve, reject) => {
-				db.getTopForCourseFromCache(course, 0, top, delta)
+				db.countUsersInTop(course, delta).then(r => {
+					ratingCnt = r.count;
+					return db.getTopForCourseFromCache(course, 0, top, delta);
+				})
 				.then(result => {
 					result.forEach((e, i, a) => { e.rank = i + 1; });
 
@@ -58,7 +63,7 @@ module.exports = {
 					}
 
 					if (contains) {
-						resolve(rating);
+						resolve({count: ratingCnt, users: result});
 						return;
 					} else {
 						return db.getUserExpAndRank(course, user, delta);
@@ -70,7 +75,7 @@ module.exports = {
 						let count = res.rank == top + 1 ? 2 : 3;
 						return db.getTopForCourseFromCache(course, offset, count, delta);
 					} else {
-						resolve(rating);
+						resolve({count: ratingCnt, users: result});
 						return;
 					}
 				})
@@ -79,7 +84,7 @@ module.exports = {
 						res.forEach((e, i, a) => { e.rank = offset + i + 1; });
 						rating = rating.concat(res);
 					}
-					resolve(rating);
+					resolve({count: ratingCnt, users: result});
 				})
 				.catch(err => reject(err));
 			});
