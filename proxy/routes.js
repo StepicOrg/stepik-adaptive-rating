@@ -2,7 +2,8 @@ const express = require('express'),
       router = express.Router(),
       https = require('https'),
       querystring = require('querystring'),
-      handlers = require('./handlers');
+      handlers = require('./handlers'),
+      config = require('config');
 
 router.post('/submissions', (req, res) => {
     if (req.headers.authorization == undefined || req.headers['content-type'] == undefined) {
@@ -21,6 +22,11 @@ router.post('/submissions', (req, res) => {
         res.status(401).send({error: "Invalid course or user"});
         return;
     } 
+
+    if (!config.get('supported_courses').includes(course)) {
+        res.status(401).send({error: "Unsupported course"});
+        return;
+    }
 
     let body = JSON.stringify(req.body);
 
@@ -110,8 +116,19 @@ router.get('/rating', (req, res) => {
         return;
     } 
 
+    course = Number.parseInt(course);
+    if (!config.get('supported_courses').includes(course)) {
+        res.status(401).send({error: "Unsupported course"});
+        return;
+    }
+
+    let delta = Number.parseInt(req.query.days) || 0;
+    if (!config.get('supported_days').includes(delta)) {
+        res.status(401).send({error: "Unsupported days count"});
+        return;
+    }
+
     let count = Number.parseInt(req.query.count) || 10;
-    let delta = Number.parseInt(req.query.days)  || undefined;
     let user = req.query.user || undefined;
 
     handlers.getRating(course, count, delta, user).then(result => {

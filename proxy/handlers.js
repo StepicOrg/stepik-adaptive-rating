@@ -24,21 +24,17 @@ module.exports = {
 	getRating: function(course, top, delta, user) {
 		if (!user) {
 			return new Promise((resolve, reject) => {
-				db.getTopForCourse(course, top, delta).then(result => {
-					result.forEach((e, i, a) => {
-						e.rank = i + 1;
-					});
+				db.getTopForCourseFromCache(course, 0, top, delta).then(result => {
+					result.forEach((e, i, a) => { e.rank = i + 1; });
 					resolve(result);
 				}).catch(err => reject(err));
 			});
 		} else {
 			let rating = [];
 			return new Promise((resolve, reject) => {
-				db.getTopForCourse(course, top, delta)
+				db.getTopForCourseFromCache(course, 0, top, delta)
 				.then(result => {
-					result.forEach((e, i, a) => {
-						e.rank = i + 1;
-					});
+					result.forEach((e, i, a) => { e.rank = i + 1; });
 
 					rating = result;
 
@@ -59,9 +55,16 @@ module.exports = {
 				})
 				.then(res => {
 					if (res != undefined && res.rank != undefined && res.exp != undefined) {
-						res.user = user;
-						res.rank += 1;
-						rating.push(res);
+						return db.getTopForCourseFromCache(course, res.rank - (res.rank > top), 2 + (res.rank > top), delta);
+					} else {
+						resolve(rating);
+						return;
+					}
+				})
+				.then(res => {
+					if (res != undefined) {
+						result.forEach((e, i, a) => { e.rank = i + 1; });
+						rating.concat(result);
 					}
 					resolve(rating);
 				})

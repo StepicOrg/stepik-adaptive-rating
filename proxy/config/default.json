@@ -19,5 +19,7 @@
             "exp": "exp",
             "delta": "delta"
         }
-    }
+    },
+    "supported_courses": [1838],
+    "supported_days": [0, 7, 30, 1]
 }
