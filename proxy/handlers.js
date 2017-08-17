@@ -21,6 +21,13 @@ module.exports = {
 	getReturn: function(submission) {
 		return db.updateSubmissionStatus(submission);
 	},
+	postMigrate: function(course, user, exp, streak) {
+		return new Promise((resolve, reject) => {
+			db.migrate(course, user, exp, streak).then(r => {
+				resolve(!r.equals(db.Errors.AlreadyMigrateError));
+			}).catch(err => reject(err));
+		});
+	},
 	getRating: function(course, top, delta, user) {
 		if (!user) {
 			return new Promise((resolve, reject) => {

@@ -139,4 +139,50 @@ router.get('/rating', (req, res) => {
     });
 });
 
+router.post('/migrate', (req, res) => {
+    let course = req.body.course;
+
+    if (course == undefined || isNaN(course)) {
+        res.status(401).send({error: "Invalid course id"});
+        return;
+    } 
+
+    course = Number.parseInt(course);
+    if (course != 1838) {
+        res.status(401).send({error: "Only 1838 course supported migration"});
+        return;
+    }
+
+    let user = req.body.user;
+    if (user == undefined || isNaN(user)) {
+        res.status(401).send({error: "Invalid user id"});
+        return;
+    } 
+
+    let exp = req.body.exp;
+    if (exp == undefined || isNaN(exp) || exp <= 0) {
+        res.status(401).send({error: "Invalid exp count"});
+        return;
+    } 
+
+    let streak = req.body.streak;
+    if (streak == undefined || isNaN(streak) || streak < 1) {
+        res.status(401).send({error: "Invalid streak count"});
+        return;
+    } 
+
+    handlers.postMigrate(course, user, exp, streak).then(result => {
+        if (!result) {
+            console.log(`[OK] Migration completed before: user = ${user}, exp = ${exp}, streak = ${streak}`);
+            res.status(200).send({});
+        } else {
+            console.log(`[OK] Migration completed: user = ${user}, exp = ${exp}, streak = ${streak}`);
+            res.status(201).send({});
+        }
+    }).catch((err) => {
+        console.log(`[FAIL] Migration for user = ${user}, error = ${err}`);
+        res.status(500).send({error: ""});
+    });
+});
+
 module.exports = router;
