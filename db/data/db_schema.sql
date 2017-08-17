@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS `submissions` (
   `exp` int(11) NOT NULL,
   `id` int(11) NOT NULL PRIMARY KEY,
   `status` text COLLATE utf8_unicode_ci NOT NULL,
-  `updated_at` date NOT NULL
+  `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 INSERT INTO `submissions` VALUES (0, 0, 0, 0, '', 0);

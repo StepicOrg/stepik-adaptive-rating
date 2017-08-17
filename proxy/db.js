@@ -30,7 +30,7 @@ module.exports = {
 
         forceId = forceId ? `(SELECT MIN(${submissions.fields.submissionId} - 1) AS ${submissions.fields.submissionId} FROM ${submissions.name})` : SqlString.escape(submission.id);
         timestamp = timestamp ? SqlString.format('FROM_UNIXTIME(?)', [timestamp]) : 'NOW()';
-        
+
         return db.query(`
             INSERT INTO ${submissions.name}
             (${submissions.fields.courseId}, ${submissions.fields.profileId}, ${submissions.fields.exp}, ${submissions.fields.submissionId}, ${submissions.fields.status}, ${submissions.fields.timestamp})
@@ -68,7 +68,7 @@ module.exports = {
     * @return - array of top users like [{profile_id, exp, submissions.fields.timestamp }]
     */
     getTopForCourse: function (courseId, count, delta) {
-        delta = delta ? `AND ${submissions.fields.timestamp} >= DATE_SUB (CURDATE(), INTERVAL ${SqlString.escape(delta)} DAY)` : '';
+        delta = delta ? `AND ${submissions.fields.timestamp} >= DATE_SUB (NOW(), INTERVAL ${SqlString.escape(delta)} DAY)` : '';
 
         return db.query(`
             SELECT ${submissions.fields.profileId}, sum(${submissions.fields.exp}) as ${submissions.fields.exp}
@@ -110,7 +110,7 @@ module.exports = {
             DELETE FROM ${cache.name}
             WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?`, [courseId, delta]).then(_ => {
 
-                deltaSelect = delta != 0 ? `AND ${submissions.fields.timestamp} >= DATE_SUB (CURDATE(), INTERVAL ${SqlString.escape(delta)} DAY)` : '';
+                deltaSelect = delta != 0 ? `AND ${submissions.fields.timestamp} >= DATE_SUB (NOW(), INTERVAL ${SqlString.escape(delta)} DAY)` : '';
 
                 return db.query(`
                     INSERT INTO ${cache.name} (${cache.fields.id}, ${cache.fields.courseId}, ${submissions.fields.profileId}, ${submissions.fields.exp}, ${cache.fields.delta})
