@@ -31,6 +31,7 @@ module.exports = {
 			});
 		} else {
 			let rating = [];
+			let offset = -1;
 			return new Promise((resolve, reject) => {
 				db.getTopForCourseFromCache(course, 0, top, delta)
 				.then(result => {
@@ -55,7 +56,9 @@ module.exports = {
 				})
 				.then(res => {
 					if (res != undefined && res.rank != undefined && res.exp != undefined) {
-						return db.getTopForCourseFromCache(course, res.rank - (res.rank > top), 2 + (res.rank > top), delta);
+						offset = res.rank == top + 1 ? res.rank - 1 : res.rank - 2;
+						let count = res.rank == top + 1 ? 2 : 3;
+						return db.getTopForCourseFromCache(course, offset, count, delta);
 					} else {
 						resolve(rating);
 						return;
@@ -63,8 +66,8 @@ module.exports = {
 				})
 				.then(res => {
 					if (res != undefined) {
-						res.forEach((e, i, a) => { e.rank = i + 1; });
-						rating.concat(res);
+						res.forEach((e, i, a) => { e.rank = offset + i + 1; });
+						rating = rating.concat(res);
 					}
 					resolve(rating);
 				})
