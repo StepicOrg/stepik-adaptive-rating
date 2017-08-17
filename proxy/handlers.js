@@ -28,6 +28,9 @@ module.exports = {
 			}).catch(err => reject(err));
 		});
 	},
+	getCount: function(course, delta) {
+		return db.countUsersInTop(course, delta);
+	},
 	getRating: function(course, top, delta, user) {
 		if (!user) {
 			return new Promise((resolve, reject) => {
