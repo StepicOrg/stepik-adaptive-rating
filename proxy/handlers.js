@@ -24,7 +24,7 @@ module.exports = {
 	postMigrate: function(course, user, exp, streak) {
 		return new Promise((resolve, reject) => {
 			db.migrate(course, user, exp, streak).then(r => {
-				resolve(!r.equals(db.Errors.AlreadyMigrateError));
+				resolve(r !== db.Errors.AlreadyMigrateError);
 			}).catch(err => reject(err));
 		});
 	},
