@@ -63,7 +63,7 @@ module.exports = {
 					}
 
 					if (contains) {
-						resolve({count: ratingCnt, users: result});
+						resolve({count: ratingCnt, users: rating});
 						return;
 					} else {
 						return db.getUserExpAndRank(course, user, delta);
@@ -75,7 +75,7 @@ module.exports = {
 						let count = res.rank == top + 1 ? 2 : 3;
 						return db.getTopForCourseFromCache(course, offset, count, delta);
 					} else {
-						resolve({count: ratingCnt, users: result});
+						resolve({count: ratingCnt, users: rating});
 						return;
 					}
 				})
@@ -84,7 +84,7 @@ module.exports = {
 						res.forEach((e, i, a) => { e.rank = offset + i + 1; });
 						rating = rating.concat(res);
 					}
-					resolve({count: ratingCnt, users: result});
+					resolve({count: ratingCnt, users: rating});
 				})
 				.catch(err => reject(err));
 			});
