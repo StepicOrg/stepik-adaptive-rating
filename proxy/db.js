@@ -141,6 +141,18 @@ module.exports = {
             WHERE ${cache.fields.courseId} = ? AND ${cache.fields.profileId} = ? AND ${cache.fields.delta} = ?`, [courseId, delta, courseId, profileId, delta]).then(getFirstArg).then(getFirstArg);
     },
 
+    countUsersInTop: function (courseId, delta) {
+        delta = delta || 0;
+
+        return db.query(`
+            SELECT COUNT(*)
+            FROM ${cache.name}
+            WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?`,
+
+            [courseId, count]).then(getFirstArg);)
+
+    },
+
     migrate: function (courseId, profileId, exp, streak) {
         return db.query(`
             SELECT ${submissions.fields.profileId}
