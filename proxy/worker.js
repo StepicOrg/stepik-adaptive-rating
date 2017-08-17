@@ -24,7 +24,7 @@ let rebuildCaches = () => {
     }
 };
 
-setInterval(() => rebuildCaches(), 5 * 60 * 1000);
+setInterval(() => rebuildCaches(), 1 * 60 * 1000);
 
 server.listen(PORT, () => {
     console.log(`Server started on port ${PORT}...`);
