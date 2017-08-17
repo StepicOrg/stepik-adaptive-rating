@@ -63,8 +63,8 @@ module.exports = {
 				})
 				.then(res => {
 					if (res != undefined) {
-						result.forEach((e, i, a) => { e.rank = i + 1; });
-						rating.concat(result);
+						res.forEach((e, i, a) => { e.rank = i + 1; });
+						rating.concat(res);
 					}
 					resolve(rating);
 				})
