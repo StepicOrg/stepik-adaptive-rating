@@ -149,7 +149,7 @@ module.exports = {
             FROM ${cache.name}
             WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?`,
 
-            [courseId, count]).then(getFirstArg);)
+            [courseId, count]).then(getFirstArg);
 
     },
 
