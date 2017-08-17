@@ -28,13 +28,18 @@ module.exports = {
     },
     insertSubmission: function (submission, forceId, timestamp) {
 
-        forceId = forceId ? `MIN(${submissions.fields.submissionId} - 1) AS ${submissions.fields.submissionId}` : SqlString.escape(submission.id);
+        forceId = forceId ? `(SELECT MIN(${submissions.fields.submissionId} - 1) AS ${submissions.fields.submissionId} FROM ${submissions.name})` : SqlString.escape(submission.id);
         timestamp = timestamp ? SqlString.format('FROM_UNIXTIME(?)', [timestamp]) : 'NOW()';
+
+        console.log(SqlString.format(`
+            INSERT INTO ${submissions.name}
+            (${submissions.fields.courseId}, ${submissions.fields.profileId}, ${submissions.fields.exp}, ${submissions.fields.submissionId}, ${submissions.fields.status}, ${submissions.fields.timestamp})
+            SELECT ?, ?, ?, ${forceId}, ?, ${timestamp}`, [submission.course, submission.user, submission.exp, submission.status]));
 
         return db.query(`
             INSERT INTO ${submissions.name}
             (${submissions.fields.courseId}, ${submissions.fields.profileId}, ${submissions.fields.exp}, ${submissions.fields.submissionId}, ${submissions.fields.status}, ${submissions.fields.timestamp})
-            SELECT ?, ?, ?, ${forceId}, ?, ${timestamp} FROM ${submissions.name}`, [submission.course, submission.user, submission.exp, submission.status]);
+            SELECT ?, ?, ?, ${forceId}, ?, ${timestamp}`, [submission.course, submission.user, submission.exp, submission.status]);
     },
     getNthSubmissionFromEnd: function (courseId, profileId, position, status) {
         status = status ? `AND ${submissions.fields.status} = ${SqlString.escape(status)}` : `AND (${submissions.fields.status} = 'correct' OR ${submissions.fields.status} = 'wrong')`;
