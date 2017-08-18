@@ -149,7 +149,7 @@ router.post('/migrate', (req, res) => {
 
     course = Number.parseInt(course);
     if (course != 1838) {
-        res.status(401).send({error: "Only 1838 course supported migration"});
+        res.status(200).send({msg: "Only 1838 course supported migration"});
         return;
     }
 
