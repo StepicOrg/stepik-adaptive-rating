@@ -166,7 +166,7 @@ router.post('/migrate', (req, res) => {
     } 
 
     let streak = req.body.streak;
-    if (streak == undefined || isNaN(streak) || streak < 1) {
+    if (streak == undefined || isNaN(streak) || streak < 0) {
         res.status(401).send({error: "Invalid streak count"});
         return;
     } 
