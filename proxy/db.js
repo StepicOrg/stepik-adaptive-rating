@@ -93,7 +93,7 @@ module.exports = {
             SELECT ${cache.fields.profileId}, ${cache.fields.exp}
             FROM ${cache.name}
             WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?
-            ORDER BY ${cache.fields.exp} DESC
+            ORDER BY ${cache.fields.exp} DESC, ${cache.fields.id} DESC
             LIMIT ?, ?`, [courseId, delta, start, count]).then(getFirstArg);
     },
 
@@ -133,12 +133,23 @@ module.exports = {
         delta = delta || 0;
 
         return db.query(`
-            SELECT ${cache.fields.exp}, FIND_IN_SET(${cache.fields.exp}, (
-                SELECT GROUP_CONCAT (${cache.fields.exp} ORDER BY ${cache.fields.exp} DESC) FROM ${cache.name}
-                WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?
-            )) AS rank
+            SELECT ${cache.fields.id}, ${cache.fields.exp}
             FROM ${cache.name}
-            WHERE ${cache.fields.courseId} = ? AND ${cache.fields.profileId} = ? AND ${cache.fields.delta} = ?`, [courseId, delta, courseId, profileId, delta]).then(getFirstArg).then(getFirstArg);
+            WHERE ${cache.fields.courseId} = ? AND ${cache.fields.profileId} = ? AND ${cache.fields.delta} = ?
+            `, [courseId, profileId, delta]).then(getFirstArg).spread((r) => {
+                var exp = r.exp;
+                let id = r.id;
+                return db.query(`
+
+                    SELECT SUM(rank) as rank FROM(
+                        SELECT COUNT(*) as rank FROM ${cache.name} WHERE ${cache.fields.exp} > ? AND ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?
+                        UNION ALL
+                        SELECT COUNT(*) as rank FROM ${cache.name} WHERE ${cache.fields.exp} = ? AND ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ? AND ${cache.fields.id} > ?
+                    ) t`, [exp, courseId, delta, exp, courseId, delta, id]).then(getFirstArg).spread(rrr => {
+                        rrr.exp = exp;
+                        return [rrr];
+                    });
+            });
     },
 
     countUsersInTop: function (courseId, delta) {
