@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "forever start worker.js"
+    "start": "node worker.js"
   },
   "repository": {
     "type": "git",
@@ -21,7 +21,6 @@
     "body-parser": "^1.17.2",
     "config": "^1.26.1",
     "express": "^4.15.4",
-    "mysql-promise": "^4.1.0",
-    "forever": "0.15.3"
+    "mysql-promise": "^4.1.0"
   }
 }
