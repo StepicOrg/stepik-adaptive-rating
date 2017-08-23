@@ -1,6 +1,7 @@
 const 
       db = require('./db'),
-      handlers = require('./handlers');
+      handlers = require('./handlers'),
+      https = require('https');
 
 // Make api request
 // Returns promise with response
