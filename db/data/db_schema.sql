@@ -15,15 +15,12 @@ CREATE TABLE IF NOT EXISTS `cache` (
   `delta` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `submissions` (
+CREATE TABLE IF NOT EXISTS `rating` (
   `course` int(11) NOT NULL,
   `user` int(11) NOT NULL,
   `exp` int(11) NOT NULL,
-  `id` int(11) NOT NULL PRIMARY KEY,
-  `status` text COLLATE utf8_unicode_ci NOT NULL,
+  `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
-INSERT INTO `submissions` VALUES (0, 0, 0, 0, '', 0);
 
 GRANT ALL PRIVILEGES ON *.* TO 'dev'@'%';

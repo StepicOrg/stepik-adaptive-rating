@@ -16,48 +16,61 @@ const cache = config.get('table_cache');
 const getFirstArg = (r) => { return r[0]; }
 
 module.exports = {
-    Errors: {
-        AlreadyMigrateError: 'User has already migrated'
-    },
+    // Errors: {
+    //     AlreadyMigrateError: 'User has already migrated'
+    // },
 
-    updateSubmissionStatus: function (submission) {
-        return db.query(`
-            UPDATE ${submissions.name}
-            SET ${submissions.fields.status} = ?
-            WHERE ${submissions.fields.submissionId} = ?`, [submission.status, submission.id]);
-    },
-    insertSubmission: function (submission, forceId, timestamp) {
+    // updateSubmissionStatus: function (submission) {
+    //     return db.query(`
+    //         UPDATE ${submissions.name}
+    //         SET ${submissions.fields.status} = ?
+    //         WHERE ${submissions.fields.submissionId} = ?`, [submission.status, submission.id]);
+    // },
+    // insertSubmission: function (submission, forceId, timestamp) {
+    //
+    //     forceId = forceId ? `(SELECT MIN(${submissions.fields.submissionId} - 1) AS ${submissions.fields.submissionId} FROM ${submissions.name})` : SqlString.escape(submission.id);
+    //     timestamp = timestamp ? SqlString.format('FROM_UNIXTIME(?)', [timestamp]) : 'NOW()';
+    //
+    //     return db.query(`
+    //         INSERT INTO ${submissions.name}
+    //         (${submissions.fields.courseId}, ${submissions.fields.profileId}, ${submissions.fields.exp}, ${submissions.fields.submissionId}, ${submissions.fields.status}, ${submissions.fields.timestamp})
+    //         SELECT ?, ?, ?, ${forceId}, ?, ${timestamp}`, [submission.course, submission.user, submission.exp, submission.status]);
+    // },
+    // getNthSubmissionFromEnd: function (courseId, profileId, position, status) {
+    //     status = status ? `AND ${submissions.fields.status} = ${SqlString.escape(status)}` : `AND (${submissions.fields.status} = 'correct' OR ${submissions.fields.status} = 'wrong')`;
+    //     return db.query(`
+    //         SELECT * FROM ${submissions.name}
+    //         WHERE ${submissions.fields.profileId} = ? AND ${submissions.fields.courseId} = ? ${status}
+    //         ORDER BY ${submissions.fields.submissionId} DESC
+    //         LIMIT ?, 1`, [profileId, courseId, position]).then(getFirstArg);
+    // },
+    // getLastSubmission: function (courseId, profileId) {
+    //     return this.getNthSubmissionFromEnd(courseId, profileId, 0);
+    // },
+    // getLastCorrectSubmission: function (courseId, profileId) {
+    //     return this.getNthSubmissionFromEnd(courseId, profileId, 0, 'correct');
+    // },
+    // calculateStreak: function (courseId, profileId, isStreakRestored) {
+    //     return (isStreakRestored ? this.getLastCorrectSubmission(courseId, profileId) : this.getLastSubmission(courseId, profileId)).spread((submission) => {
+    //         if (submission && submission[submissions.fields.status] == 'correct') {
+    //             return submission[submissions.fields.exp] + 1;
+    //         } else {
+    //             return 1;
+    //         }
+    //     });
+    // },
 
-        forceId = forceId ? `(SELECT MIN(${submissions.fields.submissionId} - 1) AS ${submissions.fields.submissionId} FROM ${submissions.name})` : SqlString.escape(submission.id);
-        timestamp = timestamp ? SqlString.format('FROM_UNIXTIME(?)', [timestamp]) : 'NOW()';
-
+    updateRating: function (courseId, profileId, exp) {
         return db.query(`
-            INSERT INTO ${submissions.name}
-            (${submissions.fields.courseId}, ${submissions.fields.profileId}, ${submissions.fields.exp}, ${submissions.fields.submissionId}, ${submissions.fields.status}, ${submissions.fields.timestamp})
-            SELECT ?, ?, ?, ${forceId}, ?, ${timestamp}`, [submission.course, submission.user, submission.exp, submission.status]);
-    },
-    getNthSubmissionFromEnd: function (courseId, profileId, position, status) {
-        status = status ? `AND ${submissions.fields.status} = ${SqlString.escape(status)}` : `AND (${submissions.fields.status} = 'correct' OR ${submissions.fields.status} = 'wrong')`;
-        return db.query(`
-            SELECT * FROM ${submissions.name}
-            WHERE ${submissions.fields.profileId} = ? AND ${submissions.fields.courseId} = ? ${status}
-            ORDER BY ${submissions.fields.submissionId} DESC
-            LIMIT ?, 1`, [profileId, courseId, position]).then(getFirstArg);
-    },
-    getLastSubmission: function (courseId, profileId) {
-        return this.getNthSubmissionFromEnd(courseId, profileId, 0);
-    },
-    getLastCorrectSubmission: function (courseId, profileId) {
-        return this.getNthSubmissionFromEnd(courseId, profileId, 0, 'correct');
-    },
-    calculateStreak: function (courseId, profileId, isStreakRestored) {
-        return (isStreakRestored ? this.getLastCorrectSubmission(courseId, profileId) : this.getLastSubmission(courseId, profileId)).spread((submission) => {
-            if (submission && submission[submissions.fields.status] == 'correct') {
-                return submission[submissions.fields.exp] + 1;
-            } else {
-                return 1;
-            }
-        });
+                INSERT INTO ${submissions.name}
+                (${submissions.fields.courseId}, ${submissions.fields.profileId}, ${submissions.fields.exp}, ${submissions.fields.timestamp})
+                SELECT ?, ?, (
+                    SELECT MAX(${submissions.fields.exp}) as ${submissions.fields.exp} FROM (
+                        SELECT 0 as ${submissions.fields.exp}
+                        UNION ALL
+                        SELECT ? - IFNULL(SUM(${submissions.fields.exp}), 0) as ${submissions.fields.exp} FROM ${submissions.name} WHERE ${submissions.fields.courseId} = ? AND ${submissions.fields.profileId} = ?
+                    ) a
+                ), NOW()`, [courseId, profileId, exp, courseId, profileId]);
     },
 
 
@@ -73,7 +86,7 @@ module.exports = {
         return db.query(`
             SELECT ${submissions.fields.profileId}, sum(${submissions.fields.exp}) as ${submissions.fields.exp}
             FROM ${submissions.name}
-            WHERE ${submissions.fields.status} = 'correct' AND ${submissions.fields.courseId} = ? ${delta}
+            WHERE ${submissions.fields.courseId} = ? ${delta}
             GROUP BY ${submissions.fields.profileId}
             ORDER BY ${submissions.fields.exp} DESC
             LIMIT ?`, [courseId, count]).then(getFirstArg);
@@ -116,7 +129,7 @@ module.exports = {
                     INSERT INTO ${cache.name} (${cache.fields.id}, ${cache.fields.courseId}, ${submissions.fields.profileId}, ${submissions.fields.exp}, ${cache.fields.delta})
                     SELECT null, ?, ${submissions.fields.profileId}, sum(${submissions.fields.exp}) as ${submissions.fields.exp}, ?
                     FROM ${submissions.name}
-                    WHERE ${submissions.fields.status} = 'correct' AND ${submissions.fields.courseId} = ? ${deltaSelect}
+                    WHERE ${submissions.fields.courseId} = ? ${deltaSelect}
                     GROUP BY ${submissions.fields.profileId}
                     ORDER BY ${submissions.fields.exp} DESC`, [courseId, delta, courseId]);
             });
@@ -161,20 +174,20 @@ module.exports = {
             WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?`, [courseId, delta]).then(getFirstArg).then(getFirstArg);
     },
 
-    migrate: function (courseId, profileId, exp, streak) {
-        return db.query(`
-            SELECT ${submissions.fields.profileId}
-            FROM ${submissions.name}
-            WHERE ${submissions.fields.courseId} = ? AND ${submissions.fields.profileId} = ?`, [courseId, profileId]).then(getFirstArg)
-
-            .then(r => {
-                if (r.length === 0) {
-                    return this.insertSubmission({course: courseId, user: profileId, exp: streak, id: -1, status: 'correct'}, true, 0).then(_ => {
-                        return this.insertSubmission({course: courseId, user: profileId, exp: exp - streak, id: -1, status: 'correct'}, true, 0);
-                    });
-                } else {
-                    return this.Errors.AlreadyMigrateError;
-                }
-            })
-    }
+    // migrate: function (courseId, profileId, exp, streak) {
+    //     return db.query(`
+    //         SELECT ${submissions.fields.profileId}
+    //         FROM ${submissions.name}
+    //         WHERE ${submissions.fields.courseId} = ? AND ${submissions.fields.profileId} = ?`, [courseId, profileId]).then(getFirstArg)
+    //
+    //         .then(r => {
+    //             if (r.length === 0) {
+    //                 return this.insertSubmission({course: courseId, user: profileId, exp: streak, id: -1, status: 'correct'}, true, 0).then(_ => {
+    //                     return this.insertSubmission({course: courseId, user: profileId, exp: exp - streak, id: -1, status: 'correct'}, true, 0);
+    //                 });
+    //             } else {
+    //                 return this.Errors.AlreadyMigrateError;
+    //             }
+    //         })
+    // }
 };

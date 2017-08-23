@@ -1,6 +1,6 @@
 {
     "table_submissions" : {
-        "name" : "submissions",
+        "name" : "rating",
         "fields" : {
             "courseId": "course",
             "profileId": "user",
