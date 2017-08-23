@@ -104,6 +104,7 @@ module.exports = {
             FROM ${cache.name}
             WHERE ${cache.fields.courseId} = ? AND ${cache.fields.profileId} = ? AND ${cache.fields.delta} = ?
             `, [courseId, profileId, delta]).then(getFirstArg).spread((r) => {
+                if (!r) return undefined;
                 var exp = r.exp;
                 let id = r.id;
                 return db.query(`
