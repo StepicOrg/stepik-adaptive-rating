@@ -5,8 +5,6 @@
             "courseId": "course",
             "profileId": "user",
             "exp": "exp",
-            "submissionId": "id",
-            "status": "status",
             "timestamp": "updated_at"
         }
     },

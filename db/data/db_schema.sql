@@ -3,7 +3,6 @@ SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
-
 CREATE DATABASE IF NOT EXISTS `adaptive_rating` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 USE `adaptive_rating`;
 

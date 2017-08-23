@@ -2,30 +2,54 @@ const
       db = require('./db'),
       handlers = require('./handlers');
 
+// Make api request
+// Returns promise with response
+function apiCall(endpoint, bearer) {
+    return new Promise((resolve, reject) => {
+        let headers = {'Authorization': 'Bearer ' + bearer};
+        let options = {host: 'stepik.org', path: endpoint, method: 'GET', headers: headers};
+
+        let req = https.request(options, res => {
+            res.setEncoding('utf-8');
+
+            let responseString = '';
+
+            res.on('data', data => {
+                responseString += data;
+            });
+
+            res.on('end', () => {
+                resolve(JSON.parse(responseString));
+            });
+        });
+
+        req.end();
+    });
+}
+
+// Get id by token
+// Returns promise with id
+function resolveToken(token) {
+    return new Promise((resolve, reject) => {
+        apiCall('/api/stepics/1', token).then(result => {
+            if (result["users"][0]["is_guest"] != undefined && !result["users"][0]["is_guest"]) {
+                resolve(result["users"][0]["id"]);
+            } else {
+                reject();
+            }
+        });
+    });
+}
+
 module.exports = {
-	postReturn: function(course, user, submission, isStreakRestored) {
+	putRating: function(course, rating, token) {
 		return new Promise((resolve, reject) => {
-			submission.course = course;
-			submission.user = user;
-
-			db.calculateStreak(course, user, isStreakRestored)
-			.then((streak) => {
-				submission.exp = streak;
-
-				return db.insertSubmission(submission);
+			resolveToken(token)
+			.then(userId => {
+				return db.updateRating(course, userId, rating);
 			})
-			.then(_ => resolve(submission))
-			.catch((error) => reject(error));
-		});
-	},
-	getReturn: function(submission) {
-		return db.updateSubmissionStatus(submission);
-	},
-	postMigrate: function(course, user, exp, streak) {
-		return new Promise((resolve, reject) => {
-			db.migrate(course, user, exp, streak).then(r => {
-				resolve(r !== db.Errors.AlreadyMigrateError);
-			}).catch(err => reject(err));
+			.then(_ => resolve())
+			.catch(err => reject(err));
 		});
 	},
 	getRating: function(course, top, delta, user) {
