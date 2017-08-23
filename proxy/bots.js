@@ -10,31 +10,35 @@ module.exports = {
     BOTS_ADD_INTERVAL: 60 * 60,
 
     addBots: function () {
-        let supportedCourses = config.get('supported_courses');
+        try {
+            let supportedCourses = config.get('supported_courses');
 
-        var promises = [];
+            var promises = [];
 
-        for (var i = 0; i < supportedCourses.length; i++) {
-            let cid = supportedCourses[i];
+            for (var i = 0; i < supportedCourses.length; i++) {
+                let cid = supportedCourses[i];
 
-            for (var j = 0; j < ADD_ITERATIONS; j++) {
-                let profile = Math.floor(Math.random() * BOT_NUMBER);
+                for (var j = 0; j < ADD_ITERATIONS; j++) {
+                    let profile = Math.floor(Math.random() * BOT_NUMBER);
 
-                promises.push(db.getUserExpAndRank(cid, profile).then(d => {
-                    var exp = 0;
-                    if (d) exp = d.exp;
+                    promises.push(db.getUserExpAndRank(cid, profile).then(d => {
+                        var exp = 0;
+                        if (d) exp = d.exp;
 
-                    let delta = Math.floor(Math.random() * MAX_EXP_DELTA);
+                        let delta = Math.floor(Math.random() * MAX_EXP_DELTA);
 
-                    return db.updateRating(cid, profile, exp + delta);
-                }));
+                        return db.updateRating(cid, profile, exp + delta);
+                    }));
+                }
             }
-        }
 
-        Promise.all(promises).then(_ => {
-            console.log(`[OK] Bots successfully added`);
-        }).catch(err => {
-            console.log(`[FAIL] Bots add error = ${err}`);
-        });
+            Promise.all(promises).then(_ => {
+                console.log(`[OK] Bots successfully added`);
+            }).catch(err => {
+                console.log(`[FAIL] Bots add error = ${err}`);
+            });
+        } catch (err) {
+            console.log(`[FATAL ERROR] Bots add error = ${err}`);
+        }
     }
 };
