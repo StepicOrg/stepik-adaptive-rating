@@ -79,13 +79,7 @@ module.exports = {
 
 					rating = result;
 
-					let contains = false;
-					for (var i = 0; i < rating.length; i++) {
-						if (rating[i].user == user) {
-							contains = true;
-							break;
-						}
-					}
+					let contains = rating.some(item => {item.user == user});
 
 					if (contains) {
 						resolve({count: ratingCnt, users: rating});
@@ -95,6 +89,10 @@ module.exports = {
 					}
 				})
 				.then(res => {
+                    if (Array.isArray(res) && res.length > 0) {
+                        res = res[0];
+                    }
+
 					if (res != undefined && res.rank != undefined && res.exp != undefined) {
 						offset = res.rank == top + 1 ? res.rank - 1 : res.rank - 2;
 						let count = res.rank == top + 1 ? 2 : 3;
