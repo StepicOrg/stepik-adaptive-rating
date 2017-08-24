@@ -115,7 +115,7 @@ module.exports = {
                         SELECT COUNT(*) as rank FROM ${cache.name} WHERE ${cache.fields.exp} = ? AND ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ? AND ${cache.fields.id} > ?
                     ) t`, [exp, courseId, delta, exp, courseId, delta, id]).then(getFirstArg).spread(rrr => {
                         rrr.exp = exp;
-                        return [rrr];
+                        return rrr;
                     });
             });
     },

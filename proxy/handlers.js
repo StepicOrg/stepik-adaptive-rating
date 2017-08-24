@@ -89,10 +89,6 @@ module.exports = {
 					}
 				})
 				.then(res => {
-                    if (Array.isArray(res) && res.length > 0) {
-                        res = res[0];
-                    }
-
 					if (res != undefined && res.rank != undefined && res.exp != undefined) {
 						offset = res.rank == top + 1 ? res.rank - 1 : res.rank - 2;
 						let count = res.rank == top + 1 ? 2 : 3;
