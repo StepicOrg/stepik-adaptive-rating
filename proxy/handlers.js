@@ -79,7 +79,7 @@ module.exports = {
 
 					rating = result;
 
-					let contains = rating.some(item => {item.user == user});
+					let contains = rating.some(item => { return item.user == user; });
 
 					if (contains) {
 						resolve({count: ratingCnt, users: rating});
