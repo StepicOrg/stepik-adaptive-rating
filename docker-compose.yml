@@ -1,11 +1,11 @@
-version: '3'
+version: '2'
 
 services:
   proxy:
     container_name: stepik-adaptive-rating-proxy
     build: ./proxy
     ports:
-      - "9000:9000"
+      - "80:9000"
     env_file:
       - ".env"
     environment:
@@ -15,6 +15,7 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     depends_on:
       - mysql
+    restart: always
 
   mysql:
     image: mysql

@@ -92,7 +92,7 @@ module.exports = {
 					if (res != undefined && res.rank != undefined && res.exp != undefined) {
 						offset = res.rank == top + 1 ? res.rank - 1 : res.rank - 2;
 						let count = res.rank == top + 1 ? 2 : 3;
-						return db.getTopForCourseFromCache(course, offset, count, delta);
+						return db.getTopForCourseFromCache(course, offset + 1, count, delta);
 					} else {
 						resolve({count: ratingCnt, users: rating});
 						return;

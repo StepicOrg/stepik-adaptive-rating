@@ -29,7 +29,7 @@ let rebuildCaches = () => {
     }
 };
 
-setInterval(() => rebuildCaches(), 1 * 60 * 1000);
+setInterval(() => rebuildCaches(), 10 * 60 * 1000);
 
 setInterval(bots.addBots, bots.BOTS_ADD_INTERVAL * 1000);
 
