@@ -80,4 +80,38 @@ router.get('/rating', (req, res) => {
     }
 });
 
+router.get('/rating-restore', (req, res) => {
+    try {
+        let token = req.query.token;
+        let course = req.query.course;
+
+        if (!token) {
+            res.status(401).send({error: "Invalid token"});
+            return;
+        }
+
+        if (course == undefined || isNaN(course)) {
+            res.status(401).send({error: "Invalid course id"});
+            return;
+        }
+
+        course = Number.parseInt(course);
+        if (!config.get('supported_courses').includes(course)) {
+            res.status(401).send({error: "Unsupported course"});
+            return;
+        }
+
+        handlers.restoreRating(course, token).then(result => {
+            console.log(`[OK] Restore rating: course = ${course}, token = ${token}`);
+            res.status(200).send(result);
+        }).catch(err => {
+            console.log(`[FAIL] Update rating: error = ${err}`);
+            res.status(500).send({error: ""});
+        });
+    } catch (err) {
+        console.log(`[FATAL ERROR] Restore rating from db: error = ${err}`);
+        res.status(500).send({error: ""});
+    }
+});
+
 module.exports = router;

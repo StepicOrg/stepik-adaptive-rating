@@ -1,4 +1,4 @@
-const 
+const
       db = require('./db'),
       handlers = require('./handlers'),
       https = require('https');
@@ -53,6 +53,16 @@ module.exports = {
 			.catch(err => reject(err));
 		});
 	},
+    restoreRating: function(course, token) {
+        return new Promise((resolve, reject) => {
+            resolveToken(token)
+            .then(userId => {
+                return db.getUserExpAndStreak(course, userId);
+            })
+            .then(result => resolve({exp: result.exp, streak: result.streak}))
+            .catch(err => reject(err));
+        });
+    },
 	getRating: function(course, top, delta, user) {
 		let ratingCnt = 0;
 		if (!user) {
