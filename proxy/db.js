@@ -90,6 +90,35 @@ module.exports = {
     },
 
     /**
+     * @param courseId {number} - id of a course
+     * @param profileId {number} - user id
+     * @return Promise to object {exp, streak}
+     */
+    getUserExpAndStreak: function (courseId, profileId) {
+        return db.query(`
+            SELECT IFNULL(SUM(${submissions.fields.exp}), 0) as ${submissions.fields.exp} 
+            FROM ${submissions.name} 
+            WHERE ${submissions.fields.courseId} = ? AND ${submissions.fields.profileId} = ?
+        `, [courseId, profileId]).then(getFirstArg).then(getFirstArg).then((r) => {
+            let exp = r.exp;
+
+            return db.query(`
+                SELECT ${submissions.fields.exp}
+                FROM ${submissions.name} 
+                WHERE ${submissions.fields.courseId} = ? AND ${submissions.fields.profileId} = ?
+                ORDER BY ${submissions.fields.timestamp} DESC
+                LIMIT 1
+            `, [courseId, profileId]).then(getFirstArg).then((r2) => {
+                let streak = 0;
+                if (r2.length === 1) {
+                    streak = r2[0].exp;
+                }
+                return {'exp': exp, 'streak': streak};
+            })
+        });
+    },
+
+    /**
     * @param courseId {number} - id of a course
     * @param profileId {number} - user id
     * @param {number} [delta] - if set period in days for which you want get top
