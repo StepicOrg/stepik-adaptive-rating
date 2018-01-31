@@ -59,7 +59,7 @@ module.exports = {
             .then(userId => {
                 return db.getUserExpAndStreak(course, userId);
             })
-            .then(result => resolve({exp: result.exp, streak: result.streak}))
+            .then(result => resolve({exp: result.exp, streak: 0}))
             .catch(err => reject(err));
         });
     },
