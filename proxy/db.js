@@ -65,7 +65,7 @@ module.exports = {
         delta = delta || 0;
 
         return db.query(`
-            SELECT ${cache.fields.profileId}, ${cache.fields.exp}, ISNULL(${users.name}.${users.fields.id}) as isNotFake
+            SELECT ${cache.fields.profileId}, ${cache.fields.exp}, ISNULL(${users.name}.${users.fields.id}) as is_not_fake
             FROM ${cache.name}
             LEFT JOIN ${users.name} ON ${cache.name}.${cache.fields.profileId} = ${users.name}.${users.fields.id}
             WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?
