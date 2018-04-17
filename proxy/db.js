@@ -12,10 +12,17 @@ db.configure({
 
 const submissions = config.get('table_submissions');
 const cache = config.get('table_cache');
+const users = config.get('table_users');
 
 const getFirstArg = (r) => { return r[0]; }
 
 module.exports = {
+    addNonFakeUser: function (userId) {
+        return db.query(`
+                REPLACE INTO ${users.name} VALUES (?)
+        `, [userId]);
+    },
+
     updateRating: function (courseId, profileId, exp) {
         return db.query(`
                 INSERT INTO ${submissions.name}
@@ -58,8 +65,9 @@ module.exports = {
         delta = delta || 0;
 
         return db.query(`
-            SELECT ${cache.fields.profileId}, ${cache.fields.exp}
+            SELECT ${cache.fields.profileId}, ${cache.fields.exp}, ISNULL(${users.name}.${users.fields.id})
             FROM ${cache.name}
+            LEFT JOIN ${users.name} ON ${cache.name}.${cache.fields.profileId} = ${users.name}.${users.fields.id}
             WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?
             ORDER BY ${cache.fields.exp} DESC, ${cache.fields.id} DESC
             LIMIT ?, ?`, [courseId, delta, start, count]).then(getFirstArg);

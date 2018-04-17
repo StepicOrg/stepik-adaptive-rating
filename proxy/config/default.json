@@ -18,6 +18,12 @@
             "delta": "delta"
         }
     },
+    "table_users": {
+        "name" : "users",
+        "fields" : {
+            "id" : "id"
+        }
+    },
     "supported_courses": [1838, 1906, 3067, 3150, 3149, 3124],
     "supported_days": [0, 7, 1]
 }

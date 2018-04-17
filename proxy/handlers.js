@@ -28,6 +28,11 @@ function apiCall(endpoint, bearer) {
     });
 }
 
+
+function isFakeEmail(email) {
+	return /adaptive_\d+_(android|ios)_[A-Za-z0-9]+@stepik\.org/.test(email)
+}
+
 // Get id by token
 // Returns promise with id
 function resolveToken(token) {
