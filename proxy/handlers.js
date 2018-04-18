@@ -47,11 +47,61 @@ function resolveToken(token) {
     });
 }
 
+// Get email by token and id
+// Returns promise with emails
+function resolveEmail(id, token) {
+    return new Promise((resolve, reject) => {
+        apiCall('/api/email-addresses?user=' + id, token).then(result => {
+            let emails = []
+            result["email-addresses"].forEach(a => {
+                emails.push(a["email"]);
+            });
+            resolve(emails);
+        })
+        .catch(err => reject(err));
+    });
+}
+
+//
+function deanonymizeUserById(userId, token) {
+    return new Promise((resolve, reject) => {
+        resolveEmail(userId, token).then(emails => {
+            if (emails.length == 0) {
+                resolve({status: false, msg: 'has no emails'})
+            } else {
+                var hasRealEmail = false
+                for (var i = 0; i < emails.length; j++) {
+                    if (!isFakeEmail(emails[i])) {
+                        hasRealEmail = true;
+
+                        db.addNonFakeUser(userId)
+                        .then(_ => resolve({status: true, msg: ''}))
+                        .catch(err => reject(err));
+                        break;
+                    }
+                }
+
+                if (!hasRealEmail) {
+                    resolve({status: false, msg: 'fake email'})
+                }
+            }
+        }).catch(err => reject(err));
+    });
+}
+
 module.exports = {
 	putRating: function(course, rating, token) {
 		return new Promise((resolve, reject) => {
 			resolveToken(token)
 			.then(userId => {
+                deanonymizeUserById(userId, token)
+                .then(r => {
+                    if (r.status) {
+                        console.log('[OK] User deanonymized, user id = ' + userId)
+                    }
+                })
+                .catch(err => { console.log('[FAIL] Error while user deanonymization. ' + err) })
+
 				return db.updateRating(course, userId, rating);
 			})
 			.then(_ => resolve())

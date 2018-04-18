@@ -65,11 +65,11 @@ module.exports = {
         delta = delta || 0;
 
         return db.query(`
-            SELECT ${cache.fields.profileId}, ${cache.fields.exp}, ISNULL(${users.name}.${users.fields.id}) as is_not_fake
+            SELECT ${cache.fields.profileId}, ${cache.fields.exp}, NOT ISNULL(${users.name}.${users.fields.id}) as is_not_fake
             FROM ${cache.name}
             LEFT JOIN ${users.name} ON ${cache.name}.${cache.fields.profileId} = ${users.name}.${users.fields.id}
             WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?
-            ORDER BY ${cache.fields.exp} DESC, ${cache.fields.id} DESC
+            ORDER BY ${cache.fields.exp} DESC, ${cache.name}.${cache.fields.id} DESC
             LIMIT ?, ?`, [courseId, delta, start, count]).then(getFirstArg);
     },
 
@@ -104,15 +104,15 @@ module.exports = {
      */
     getUserExpAndStreak: function (courseId, profileId) {
         return db.query(`
-            SELECT IFNULL(SUM(${submissions.fields.exp}), 0) as ${submissions.fields.exp} 
-            FROM ${submissions.name} 
+            SELECT IFNULL(SUM(${submissions.fields.exp}), 0) as ${submissions.fields.exp}
+            FROM ${submissions.name}
             WHERE ${submissions.fields.courseId} = ? AND ${submissions.fields.profileId} = ?
         `, [courseId, profileId]).then(getFirstArg).then(getFirstArg).then((r) => {
             let exp = r.exp;
 
             return db.query(`
                 SELECT ${submissions.fields.exp}
-                FROM ${submissions.name} 
+                FROM ${submissions.name}
                 WHERE ${submissions.fields.courseId} = ? AND ${submissions.fields.profileId} = ?
                 ORDER BY ${submissions.fields.timestamp} DESC
                 LIMIT 1
