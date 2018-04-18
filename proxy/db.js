@@ -70,7 +70,12 @@ module.exports = {
             LEFT JOIN ${users.name} ON ${cache.name}.${cache.fields.profileId} = ${users.name}.${users.fields.id}
             WHERE ${cache.fields.courseId} = ? AND ${cache.fields.delta} = ?
             ORDER BY ${cache.fields.exp} DESC, ${cache.name}.${cache.fields.id} DESC
-            LIMIT ?, ?`, [courseId, delta, start, count]).then(getFirstArg);
+            LIMIT ?, ?`, [courseId, delta, start, count])
+            .then(getFirstArg)
+            .then(e => e.map(i => {
+                i.is_not_fake = i.is_not_fake === 1 ? true : false
+                return i
+            }));
     },
 
     /**
