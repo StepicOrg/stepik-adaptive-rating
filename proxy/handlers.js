@@ -70,7 +70,7 @@ function deanonymizeUserById(userId, token) {
                 resolve({status: false, msg: 'has no emails'})
             } else {
                 var hasRealEmail = false
-                for (var i = 0; i < emails.length; j++) {
+                for (var i = 0; i < emails.length; i++) {
                     if (!isFakeEmail(emails[i])) {
                         hasRealEmail = true;
 
