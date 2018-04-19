@@ -11,7 +11,12 @@ CREATE TABLE IF NOT EXISTS `cache` (
   `course` int(11) NOT NULL,
   `user` int(11) NOT NULL,
   `exp` int(11) NOT NULL,
-  `delta` int(11) NOT NULL
+  `delta` int(11) NOT NULL,
+   INDEX (course),
+   INDEX (user),
+   INDEX (exp),
+   INDEX (delta),
+   UNIQUE (course, user)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `rating` (
@@ -19,7 +24,12 @@ CREATE TABLE IF NOT EXISTS `rating` (
   `user` int(11) NOT NULL,
   `exp` int(11) NOT NULL,
   `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-  `updated_at` datetime NOT NULL
+  `updated_at` datetime NOT NULL,
+   INDEX (course),
+   INDEX (user),
+   INDEX (exp),
+   INDEX (updated_at),
+   UNIQUE (course, user)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `users` (
