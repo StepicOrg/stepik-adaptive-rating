@@ -30,7 +30,7 @@ function apiCall(endpoint, bearer) {
 
 
 function isFakeEmail(email) {
-	return /adaptive_\d+_(android|ios)_[A-Za-z0-9]+@stepik\.org/.test(email)
+	return /adaptive_\d+_(android|ios)_[A-Za-z0-9_]+@stepik\.org/.test(email)
 }
 
 // Get id by token
